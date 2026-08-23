@@ -120,6 +120,25 @@ async function checkOut(id, client) {
   return rows[0];
 }
 
+async function approve(id, client) {
+  const { rows } = await client.query(
+    `UPDATE guests SET status = 'approved', updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING ${PUBLIC_COLUMNS}`,
+    [id]
+  );
+  return rows[0];
+}
+
+// A denial reason is recorded on the audit_logs entry, not written onto the
+// guest row (there's no dedicated column for it, and overloading `notes` —
+// which is resident-authored — would blur who said what on a locked record).
+async function deny(id, client) {
+  const { rows } = await client.query(
+    `UPDATE guests SET status = 'denied', updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING ${PUBLIC_COLUMNS}`,
+    [id]
+  );
+  return rows[0];
+}
+
 module.exports = {
   countActiveThisMonthForResident,
   create,
@@ -129,4 +148,6 @@ module.exports = {
   findInCommunityForUpdate,
   checkIn,
   checkOut,
+  approve,
+  deny,
 };

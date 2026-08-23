@@ -13,6 +13,12 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
+// express.json() leaves req.body as undefined when the request has no body
+// or an unrecognized Content-Type — every validator assumes an object.
+app.use((req, res, next) => {
+  if (!req.body) req.body = {};
+  next();
+});
 
 // Routes
 app.get('/', (req, res) => {

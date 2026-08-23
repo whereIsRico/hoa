@@ -6,9 +6,11 @@ const Resident = require('../models/Resident');
 const AuditLog = require('../models/AuditLog');
 const authenticate = require('../middleware/auth');
 const authenticateStaff = require('../middleware/staffAuth');
+const requireAdmin = require('../middleware/adminAuth');
 const {
   validateGuestCreate,
   validateGuestUpdate,
+  validateGuestDeny,
   GUEST_STATUS_VALUES,
   RESIDENT_SETTABLE_STATUS_VALUES,
 } = require('../middleware/validate');
@@ -219,6 +221,97 @@ router.post('/:id/checkout', authenticateStaff, async (req, res, next) => {
       resource_id: id,
       resource_type: 'guest',
       details: {},
+    });
+
+    await client.query('COMMIT');
+    res.json({ guest: updated });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    next(err);
+  } finally {
+    client.release();
+  }
+});
+
+// Admin actions act on any guest in their community, same scoping as staff.
+// actor_type is 'admin' (not 'resident') even though the id still points
+// into the residents table — it distinguishes "acted as themselves" from
+// "acted with admin authority" in the audit trail.
+const APPROVE_FROM_STATUSES = ['invited'];
+const DENY_FROM_STATUSES = ['invited'];
+
+router.post('/:id/approve', authenticate, requireAdmin, async (req, res, next) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    return res.status(400).json({ error: 'Invalid guest id' });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const guest = await Guest.findInCommunityForUpdate(id, req.user.community_id, client);
+    if (!guest) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Guest not found' });
+    }
+    if (!APPROVE_FROM_STATUSES.includes(guest.status)) {
+      await client.query('ROLLBACK');
+      return res.status(409).json({ error: `Guest cannot be approved from status: ${guest.status}` });
+    }
+
+    const updated = await Guest.approve(id, client);
+
+    await AuditLog.log(client, {
+      community_id: req.user.community_id,
+      action: 'guest.approved',
+      actor_id: req.user.id,
+      actor_type: 'admin',
+      resource_id: id,
+      resource_type: 'guest',
+      details: {},
+    });
+
+    await client.query('COMMIT');
+    res.json({ guest: updated });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    next(err);
+  } finally {
+    client.release();
+  }
+});
+
+router.post('/:id/deny', authenticate, requireAdmin, validateGuestDeny, async (req, res, next) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    return res.status(400).json({ error: 'Invalid guest id' });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const guest = await Guest.findInCommunityForUpdate(id, req.user.community_id, client);
+    if (!guest) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Guest not found' });
+    }
+    if (!DENY_FROM_STATUSES.includes(guest.status)) {
+      await client.query('ROLLBACK');
+      return res.status(409).json({ error: `Guest cannot be denied from status: ${guest.status}` });
+    }
+
+    const updated = await Guest.deny(id, client);
+
+    await AuditLog.log(client, {
+      community_id: req.user.community_id,
+      action: 'guest.denied',
+      actor_id: req.user.id,
+      actor_type: 'admin',
+      resource_id: id,
+      resource_type: 'guest',
+      details: { reason: req.body.reason || null },
     });
 
     await client.query('COMMIT');

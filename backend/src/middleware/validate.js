@@ -168,6 +168,24 @@ function validateGuestUpdate(req, res, next) {
   next();
 }
 
+function validateGuestDeny(req, res, next) {
+  const errors = [];
+  const unknownKeys = Object.keys(req.body).filter((k) => k !== 'reason');
+  if (unknownKeys.length) {
+    errors.push(`Unknown fields: ${unknownKeys.join(', ')}`);
+  }
+
+  const { reason } = req.body;
+  if (reason !== undefined && reason !== null && typeof reason !== 'string') {
+    errors.push('reason must be a string');
+  }
+
+  if (errors.length) {
+    return res.status(400).json({ error: 'Validation failed', details: errors });
+  }
+  next();
+}
+
 module.exports = {
   validateRegister,
   validateLogin,
@@ -175,6 +193,7 @@ module.exports = {
   PROFILE_EDITABLE_FIELDS,
   validateGuestCreate,
   validateGuestUpdate,
+  validateGuestDeny,
   GUEST_EDITABLE_FIELDS,
   GUEST_STATUS_VALUES,
   RESIDENT_SETTABLE_STATUS_VALUES,
