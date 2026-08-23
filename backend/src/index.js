@@ -7,6 +7,7 @@ const staffAuthRoutes = require('./routes/staffAuth');
 const residentRoutes = require('./routes/residents');
 const communityRoutes = require('./routes/communities');
 const guestRoutes = require('./routes/guests');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.use('/api/auth', staffAuthRoutes);
 app.use('/api/residents', residentRoutes);
 app.use('/api/communities', communityRoutes);
 app.use('/api/guests', guestRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Error handling
 app.use((err, req, res, next) => {

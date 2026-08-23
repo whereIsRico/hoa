@@ -186,6 +186,44 @@ function validateGuestDeny(req, res, next) {
   next();
 }
 
+const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/;
+
+function validateStaffCreate(req, res, next) {
+  const { first_name, last_name, email, password, phone, shift_start, shift_end } = req.body;
+  const errors = [];
+
+  if (!first_name || typeof first_name !== 'string' || !first_name.trim()) errors.push('first_name is required');
+  if (!last_name || typeof last_name !== 'string' || !last_name.trim()) errors.push('last_name is required');
+  if (!email || !EMAIL_RE.test(email)) errors.push('A valid email is required');
+  if (!password || typeof password !== 'string' || password.length < 8) errors.push('password is required and must be at least 8 characters');
+  if (phone !== undefined && phone !== null && typeof phone !== 'string') errors.push('phone must be a string');
+  if (shift_start !== undefined && shift_start !== null && !TIME_RE.test(shift_start)) errors.push('shift_start must be in HH:MM or HH:MM:SS format');
+  if (shift_end !== undefined && shift_end !== null && !TIME_RE.test(shift_end)) errors.push('shift_end must be in HH:MM or HH:MM:SS format');
+
+  if (errors.length) {
+    return res.status(400).json({ error: 'Validation failed', details: errors });
+  }
+  next();
+}
+
+const RESIDENT_ROLE_VALUES = ['resident', 'admin'];
+
+function validateRoleChange(req, res, next) {
+  const errors = [];
+  const unknownKeys = Object.keys(req.body).filter((k) => k !== 'role');
+  if (unknownKeys.length) errors.push(`Unknown fields: ${unknownKeys.join(', ')}`);
+
+  const { role } = req.body;
+  if (!role || !RESIDENT_ROLE_VALUES.includes(role)) {
+    errors.push(`role is required and must be one of: ${RESIDENT_ROLE_VALUES.join(', ')}`);
+  }
+
+  if (errors.length) {
+    return res.status(400).json({ error: 'Validation failed', details: errors });
+  }
+  next();
+}
+
 module.exports = {
   validateRegister,
   validateLogin,
@@ -197,4 +235,7 @@ module.exports = {
   GUEST_EDITABLE_FIELDS,
   GUEST_STATUS_VALUES,
   RESIDENT_SETTABLE_STATUS_VALUES,
+  validateStaffCreate,
+  validateRoleChange,
+  RESIDENT_ROLE_VALUES,
 };

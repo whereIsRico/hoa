@@ -73,11 +73,38 @@ async function verifyPassword(plainPassword, passwordHash) {
   return password.compare(plainPassword, passwordHash);
 }
 
+async function findByIdInCommunity(id, communityId, client = pool) {
+  const { rows } = await client.query(
+    `SELECT ${PUBLIC_COLUMNS} FROM residents WHERE id = $1 AND community_id = $2`,
+    [id, communityId]
+  );
+  return rows[0] || null;
+}
+
+async function countAdminsInCommunity(communityId, client = pool) {
+  const { rows } = await client.query(
+    "SELECT COUNT(*)::int AS count FROM residents WHERE community_id = $1 AND role = 'admin'",
+    [communityId]
+  );
+  return rows[0].count;
+}
+
+async function updateRole(id, role, client) {
+  const { rows } = await client.query(
+    `UPDATE residents SET role = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING ${PUBLIC_COLUMNS}`,
+    [role, id]
+  );
+  return rows[0];
+}
+
 module.exports = {
   emailExistsInCommunity,
   create,
   findByEmailAndCommunity,
   findById,
+  findByIdInCommunity,
+  countAdminsInCommunity,
+  updateRole,
   updateProfile,
   verifyPassword,
 };
