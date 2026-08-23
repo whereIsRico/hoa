@@ -54,6 +54,24 @@ async function listForResident(residentId, communityId, { status } = {}) {
   return rows;
 }
 
+// Community-wide view for staff/admin — every guest in the community, not
+// just one resident's.
+async function listForCommunity(communityId, { status } = {}) {
+  const conditions = ['community_id = $1'];
+  const values = [communityId];
+
+  if (status) {
+    values.push(status);
+    conditions.push(`status = $${values.length}`);
+  }
+
+  const { rows } = await pool.query(
+    `SELECT ${PUBLIC_COLUMNS} FROM guests WHERE ${conditions.join(' AND ')} ORDER BY created_at DESC`,
+    values
+  );
+  return rows;
+}
+
 // Row-locks the guest within the caller's transaction so a concurrent update
 // (e.g. a future gate-staff check-in) can't race this one.
 async function findOwnedForUpdate(id, residentId, communityId, client) {
@@ -143,6 +161,7 @@ module.exports = {
   countActiveThisMonthForResident,
   create,
   listForResident,
+  listForCommunity,
   findOwnedForUpdate,
   update,
   findInCommunityForUpdate,

@@ -90,6 +90,38 @@ router.get('/', authenticate, async (req, res, next) => {
   }
 });
 
+// Community-wide views — every guest in the caller's community, not just
+// their own. Separate routes per actor (rather than one endpoint branching
+// on caller identity) for the same reason checkin/checkout/approve/deny are
+// separate: each actor's access is auth'd through its own middleware chain.
+router.get('/gate', authenticateStaff, async (req, res, next) => {
+  try {
+    const { status } = req.query;
+    if (status !== undefined && !GUEST_STATUS_VALUES.includes(status)) {
+      return res.status(400).json({ error: `status must be one of: ${GUEST_STATUS_VALUES.join(', ')}` });
+    }
+
+    const guests = await Guest.listForCommunity(req.staff.community_id, { status });
+    res.json({ guests });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/admin', authenticate, requireAdmin, async (req, res, next) => {
+  try {
+    const { status } = req.query;
+    if (status !== undefined && !GUEST_STATUS_VALUES.includes(status)) {
+      return res.status(400).json({ error: `status must be one of: ${GUEST_STATUS_VALUES.join(', ')}` });
+    }
+
+    const guests = await Guest.listForCommunity(req.user.community_id, { status });
+    res.json({ guests });
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.put('/:id', authenticate, validateGuestUpdate, async (req, res, next) => {
   const id = Number(req.params.id);
   if (!Number.isInteger(id)) {
