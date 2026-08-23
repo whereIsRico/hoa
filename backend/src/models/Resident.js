@@ -1,8 +1,6 @@
-const bcrypt = require('bcryptjs');
 const pool = require('../config/db');
+const password = require('../utils/password');
 const { PROFILE_EDITABLE_FIELDS } = require('../middleware/validate');
-
-const SALT_ROUNDS = 10;
 
 const PUBLIC_COLUMNS = `
   id, community_id, email, first_name, last_name, phone, unit_number,
@@ -17,8 +15,8 @@ async function emailExistsInCommunity(email, communityId) {
   return rows.length > 0;
 }
 
-async function create({ community_id, email, password, first_name, last_name, phone, unit_number }) {
-  const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
+async function create({ community_id, email, password: plainPassword, first_name, last_name, phone, unit_number }) {
+  const password_hash = await password.hash(plainPassword);
   const { rows } = await pool.query(
     `INSERT INTO residents (community_id, email, password_hash, first_name, last_name, phone, unit_number)
      VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -72,7 +70,7 @@ async function updateProfile(id, fields) {
 }
 
 async function verifyPassword(plainPassword, passwordHash) {
-  return bcrypt.compare(plainPassword, passwordHash);
+  return password.compare(plainPassword, passwordHash);
 }
 
 module.exports = {

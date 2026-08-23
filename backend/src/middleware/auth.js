@@ -1,20 +1,18 @@
-const jwt = require('jsonwebtoken');
+const { verifyFromHeader } = require('../utils/jwt');
 
 function authenticate(req, res, next) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Missing or invalid Authorization header' });
+  const payload = verifyFromHeader(req.headers.authorization);
+  if (!payload) {
+    return res.status(401).json({ error: 'Missing, invalid, or expired token' });
+  }
+  // Rejects a staff token here — the two id sequences both start at 1, so
+  // without this a staff id could be mistaken for a resident id.
+  if (payload.actorType !== 'resident') {
+    return res.status(403).json({ error: 'Resident credentials required' });
   }
 
-  const token = authHeader.slice(7);
-
-  try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = payload; // { id, community_id, role }
-    next();
-  } catch (err) {
-    return res.status(401).json({ error: 'Invalid or expired token' });
-  }
+  req.user = payload; // { id, community_id, role, actorType }
+  next();
 }
 
 module.exports = authenticate;

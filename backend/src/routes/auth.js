@@ -1,17 +1,13 @@
 const express = require('express');
-const jwt = require('jsonwebtoken');
 
 const Resident = require('../models/Resident');
+const { sign } = require('../utils/jwt');
 const { validateRegister, validateLogin } = require('../middleware/validate');
 
 const router = express.Router();
 
 function signToken(resident) {
-  return jwt.sign(
-    { id: resident.id, community_id: resident.community_id, role: resident.role },
-    process.env.JWT_SECRET,
-    { expiresIn: '7d' }
-  );
+  return sign({ id: resident.id, community_id: resident.community_id, role: resident.role, actorType: 'resident' });
 }
 
 router.post('/register', validateRegister, async (req, res, next) => {

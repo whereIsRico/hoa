@@ -36,13 +36,15 @@ CREATE TABLE gate_staff (
   community_id INTEGER NOT NULL REFERENCES communities(id),
   first_name VARCHAR(255),
   last_name VARCHAR(255),
-  email VARCHAR(255),
+  email VARCHAR(255) NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
   phone VARCHAR(20),
   is_active BOOLEAN DEFAULT true,
   shift_start TIME,
   shift_end TIME,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(community_id, email)
 );
 
 -- Guests
