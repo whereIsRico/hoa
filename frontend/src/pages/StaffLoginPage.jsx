@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '@/context/AuthContext'
+import { useStaffAuth } from '@/context/StaffAuthContext'
 import { ApiError } from '@/lib/api'
 import { AuthLayout } from '@/components/AuthLayout'
 import { CommunityPicker } from '@/components/CommunityPicker'
@@ -8,8 +8,8 @@ import { FormField, Input } from '@/components/ui/Field'
 import { Button } from '@/components/ui/Button'
 import { Banner } from '@/components/ui/Banner'
 
-export function LoginPage() {
-  const { login } = useAuth()
+export function StaffLoginPage() {
+  const { login } = useStaffAuth()
   const navigate = useNavigate()
   const [form, setForm] = useState({ community_id: '', email: '', password: '' })
   const [error, setError] = useState(null)
@@ -23,7 +23,7 @@ export function LoginPage() {
     setSubmitting(true)
     try {
       await login({ ...form, community_id: Number(form.community_id) })
-      navigate('/dashboard/guests')
+      navigate('/staff/dashboard')
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong. Please try again.')
     } finally {
@@ -33,23 +33,15 @@ export function LoginPage() {
 
   return (
     <AuthLayout
-      title="Sign in"
-      subtitle="Manage your guests and profile"
+      title="Gate staff sign in"
+      subtitle="Check guests in and out"
       footer={
-        <div className="flex flex-col gap-1.5">
-          <p>
-            Don't have an account?{' '}
-            <Link to="/register" className="font-medium text-accent-600 hover:underline">
-              Register
-            </Link>
-          </p>
-          <p>
-            Gate staff?{' '}
-            <Link to="/staff/login" className="font-medium text-accent-600 hover:underline">
-              Sign in here
-            </Link>
-          </p>
-        </div>
+        <>
+          Resident?{' '}
+          <Link to="/login" className="font-medium text-accent-600 hover:underline">
+            Sign in here
+          </Link>
+        </>
       }
     >
       <form onSubmit={onSubmit} className="flex flex-col gap-4">

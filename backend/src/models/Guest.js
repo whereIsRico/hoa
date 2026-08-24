@@ -55,18 +55,27 @@ async function listForResident(residentId, communityId, { status } = {}) {
 }
 
 // Community-wide view for staff/admin — every guest in the community, not
-// just one resident's.
+// just one resident's. Joins the inviting resident's name/unit in, since a
+// bare resident_id is useless to someone standing at a gate.
 async function listForCommunity(communityId, { status } = {}) {
-  const conditions = ['community_id = $1'];
+  const conditions = ['g.community_id = $1'];
   const values = [communityId];
 
   if (status) {
     values.push(status);
-    conditions.push(`status = $${values.length}`);
+    conditions.push(`g.status = $${values.length}`);
   }
 
   const { rows } = await pool.query(
-    `SELECT ${PUBLIC_COLUMNS} FROM guests WHERE ${conditions.join(' AND ')} ORDER BY created_at DESC`,
+    `SELECT g.id, g.resident_id, g.community_id, g.first_name, g.last_name, g.phone,
+            g.license_plate, g.purpose, g.status, g.scheduled_arrival, g.scheduled_departure,
+            g.actual_arrival, g.actual_departure, g.notes, g.created_at, g.updated_at,
+            r.first_name AS resident_first_name, r.last_name AS resident_last_name,
+            r.unit_number AS resident_unit_number
+     FROM guests g
+     JOIN residents r ON r.id = g.resident_id
+     WHERE ${conditions.join(' AND ')}
+     ORDER BY g.created_at DESC`,
     values
   );
   return rows;

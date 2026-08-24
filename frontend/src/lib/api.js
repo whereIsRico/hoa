@@ -34,13 +34,24 @@ export const authApi = {
   login: (payload) => request('/api/auth/login', { method: 'POST', body: payload }),
 }
 
+export const staffAuthApi = {
+  login: (payload) => request('/api/auth/staff-login', { method: 'POST', body: payload }),
+}
+
 export const residentsApi = {
   me: (token) => request('/api/residents/me', { token }),
   updateMe: (token, payload) => request('/api/residents/me', { method: 'PUT', token, body: payload }),
+}
+
+export const staffApi = {
+  me: (token) => request('/api/staff/me', { token }),
 }
 
 export const guestsApi = {
   list: (token, status) => request(`/api/guests${status ? `?status=${status}` : ''}`, { token }),
   create: (token, payload) => request('/api/guests', { method: 'POST', token, body: payload }),
   cancel: (token, id) => request(`/api/guests/${id}`, { method: 'PUT', token, body: { status: 'cancelled' } }),
+  listGate: (token, status) => request(`/api/guests/gate${status ? `?status=${status}` : ''}`, { token }),
+  checkIn: (token, id) => request(`/api/guests/${id}/checkin`, { method: 'POST', token }),
+  checkOut: (token, id) => request(`/api/guests/${id}/checkout`, { method: 'POST', token }),
 }
