@@ -3,12 +3,52 @@ const express = require('express');
 const pool = require('../config/db');
 const Resident = require('../models/Resident');
 const GateStaff = require('../models/GateStaff');
+const Policy = require('../models/Policy');
 const AuditLog = require('../models/AuditLog');
 const authenticate = require('../middleware/auth');
 const requireAdmin = require('../middleware/adminAuth');
-const { validateStaffCreate, validateRoleChange, validateApprovalChange } = require('../middleware/validate');
+const {
+  validateStaffCreate, validateRoleChange, validateApprovalChange, validatePolicyUpdate,
+} = require('../middleware/validate');
 
 const router = express.Router();
+
+router.get('/policy', authenticate, requireAdmin, async (req, res, next) => {
+  try {
+    const policy = await Policy.findByCommunity(req.user.community_id);
+    res.json({ policy });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.put('/policy', authenticate, requireAdmin, validatePolicyUpdate, async (req, res, next) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const before = await Policy.findByCommunity(req.user.community_id);
+    const updated = await Policy.update(req.user.community_id, req.body, client);
+
+    await AuditLog.log(client, {
+      community_id: req.user.community_id,
+      action: 'policy.updated',
+      actor_id: req.user.id,
+      actor_type: 'admin',
+      resource_id: before.id,
+      resource_type: 'policy',
+      details: { fields: Object.keys(req.body) },
+    });
+
+    await client.query('COMMIT');
+    res.json({ policy: updated });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    next(err);
+  } finally {
+    client.release();
+  }
+});
 
 router.get('/residents', authenticate, requireAdmin, async (req, res, next) => {
   try {

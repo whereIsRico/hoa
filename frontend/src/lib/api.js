@@ -52,7 +52,8 @@ export const guestsApi = {
   create: (token, payload) => request('/api/guests', { method: 'POST', token, body: payload }),
   cancel: (token, id) => request(`/api/guests/${id}`, { method: 'PUT', token, body: { status: 'cancelled' } }),
   listGate: (token, status) => request(`/api/guests/gate${status ? `?status=${status}` : ''}`, { token }),
-  checkIn: (token, id) => request(`/api/guests/${id}/checkin`, { method: 'POST', token }),
+  checkIn: (token, id, idVerified) =>
+    request(`/api/guests/${id}/checkin`, { method: 'POST', token, body: idVerified ? { id_verified: true } : {} }),
   checkOut: (token, id) => request(`/api/guests/${id}/checkout`, { method: 'POST', token }),
   listAdmin: (token, status) => request(`/api/guests/admin${status ? `?status=${status}` : ''}`, { token }),
   approve: (token, id) => request(`/api/guests/${id}/approve`, { method: 'POST', token }),
@@ -68,6 +69,8 @@ export const adminApi = {
     request(`/api/admin/residents/${id}/role`, { method: 'PUT', token, body: { role } }),
   listStaff: (token) => request('/api/admin/staff', { token }),
   createStaff: (token, payload) => request('/api/admin/staff', { method: 'POST', token, body: payload }),
+  getPolicy: (token) => request('/api/admin/policy', { token }),
+  updatePolicy: (token, payload) => request('/api/admin/policy', { method: 'PUT', token, body: payload }),
 }
 
 export const platformAuthApi = {

@@ -4,6 +4,7 @@ const pool = require('../config/db');
 const Community = require('../models/Community');
 const Resident = require('../models/Resident');
 const PlatformAdmin = require('../models/PlatformAdmin');
+const Policy = require('../models/Policy');
 const AuditLog = require('../models/AuditLog');
 const authenticatePlatform = require('../middleware/platformAuth');
 const { validateCommunityOnboard } = require('../middleware/validate');
@@ -72,12 +73,15 @@ router.post('/communities', authenticatePlatform, validateCommunityOnboard, asyn
       subscription_tier,
     }, client);
 
+    const policy = await Policy.createDefault(community.id, client);
+
     const admin = await Resident.create({
       community_id: community.id,
       email: admin_email,
       password: admin_password,
       first_name: admin_first_name,
       last_name: admin_last_name,
+      guest_limit_per_month: policy.max_guests_per_resident_per_month,
     }, client);
 
     const approvedAdmin = await Resident.updateApproval(admin.id, true, client);

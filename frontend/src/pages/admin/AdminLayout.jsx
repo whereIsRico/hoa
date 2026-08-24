@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { UsersThree, UserCircle, IdentificationBadge } from '@phosphor-icons/react'
+import { UsersThree, UserCircle, IdentificationBadge, SlidersHorizontal } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 
 const tabClass = ({ isActive }) =>
@@ -30,6 +30,10 @@ export function AdminLayout() {
         <NavLink to="/dashboard/admin/staff" className={tabClass}>
           <IdentificationBadge size={16} />
           Gate Staff
+        </NavLink>
+        <NavLink to="/dashboard/admin/policies" className={tabClass}>
+          <SlidersHorizontal size={16} />
+          Policies
         </NavLink>
       </nav>
 

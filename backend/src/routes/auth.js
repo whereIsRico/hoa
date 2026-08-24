@@ -1,6 +1,7 @@
 const express = require('express');
 
 const Resident = require('../models/Resident');
+const Policy = require('../models/Policy');
 const { sign } = require('../utils/jwt');
 const { validateRegister, validateLogin } = require('../middleware/validate');
 
@@ -19,8 +20,13 @@ router.post('/register', validateRegister, async (req, res, next) => {
       return res.status(409).json({ error: 'An account with this email already exists for this community' });
     }
 
+    // The community's configured monthly guest limit becomes this resident's
+    // starting value — an admin can still override it per-resident later.
+    const policy = await Policy.findByCommunity(community_id);
+
     const resident = await Resident.create({
       community_id, email, password, first_name, last_name, phone, unit_number,
+      guest_limit_per_month: policy.max_guests_per_resident_per_month,
     });
     const token = signToken(resident);
 

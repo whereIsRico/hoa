@@ -23,6 +23,7 @@ import { AdminGuestsPage } from '@/pages/admin/AdminGuestsPage'
 import { AdminResidentsPage } from '@/pages/admin/AdminResidentsPage'
 import { AdminStaffPage } from '@/pages/admin/AdminStaffPage'
 import { NewStaffPage } from '@/pages/admin/NewStaffPage'
+import { AdminPoliciesPage } from '@/pages/admin/AdminPoliciesPage'
 import { PlatformLoginPage } from '@/pages/platform/PlatformLoginPage'
 import { PlatformDashboardLayout } from '@/pages/platform/PlatformDashboardLayout'
 import { CommunitiesPage } from '@/pages/platform/CommunitiesPage'
@@ -54,6 +55,7 @@ export default function App() {
                     <Route path="residents" element={<AdminResidentsPage />} />
                     <Route path="staff" element={<AdminStaffPage />} />
                     <Route path="staff/new" element={<NewStaffPage />} />
+                    <Route path="policies" element={<AdminPoliciesPage />} />
                   </Route>
                 </Route>
               </Route>

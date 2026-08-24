@@ -3,6 +3,7 @@ const express = require('express');
 const pool = require('../config/db');
 const Guest = require('../models/Guest');
 const Resident = require('../models/Resident');
+const Policy = require('../models/Policy');
 const AuditLog = require('../models/AuditLog');
 const authenticate = require('../middleware/auth');
 const authenticateStaff = require('../middleware/staffAuth');
@@ -16,6 +17,19 @@ const {
 } = require('../middleware/validate');
 
 const router = express.Router();
+
+// One name per line in the policy's free-text field. Exact match on the
+// normalized full name — no fuzzy/substring matching, since that would risk
+// false positives (e.g. blacklisting "Smith" catching "Smithson").
+function isBlacklisted(firstName, lastName, blacklistedVisitors) {
+  if (!blacklistedVisitors) return false;
+  const fullName = `${firstName} ${lastName}`.trim().toLowerCase().replace(/\s+/g, ' ');
+  return blacklistedVisitors
+    .split('\n')
+    .map((line) => line.trim().toLowerCase().replace(/\s+/g, ' '))
+    .filter(Boolean)
+    .includes(fullName);
+}
 
 router.post('/', authenticate, validateGuestCreate, async (req, res, next) => {
   const client = await pool.connect();
@@ -45,6 +59,12 @@ router.post('/', authenticate, validateGuestCreate, async (req, res, next) => {
       first_name, last_name, phone, license_plate, purpose,
       scheduled_arrival, scheduled_departure, notes,
     } = req.body;
+
+    const policy = await Policy.findByCommunity(resident.community_id);
+    if (isBlacklisted(first_name, last_name, policy.blacklisted_visitors)) {
+      await client.query('ROLLBACK');
+      return res.status(403).json({ error: 'This guest cannot be registered — contact your HOA admin' });
+    }
 
     const guest = await Guest.create({
       resident_id: resident.id,
@@ -101,8 +121,21 @@ router.get('/gate', authenticateStaff, async (req, res, next) => {
       return res.status(400).json({ error: `status must be one of: ${GUEST_STATUS_VALUES.join(', ')}` });
     }
 
-    const guests = await Guest.listForCommunity(req.staff.community_id, { status });
-    res.json({ guests });
+    // Staff has no access to /api/admin/policy, but the check-in UI needs
+    // auto_approval_enabled (which statuses can even show a check-in button)
+    // and require_id_verification (whether to prompt for it) to render
+    // correctly — so the relevant bits ride along with the guest list.
+    const [guests, policy] = await Promise.all([
+      Guest.listForCommunity(req.staff.community_id, { status }),
+      Policy.findByCommunity(req.staff.community_id),
+    ]);
+    res.json({
+      guests,
+      policy: {
+        auto_approval_enabled: policy.auto_approval_enabled,
+        require_id_verification: policy.require_id_verification,
+      },
+    });
   } catch (err) {
     next(err);
   }
@@ -175,12 +208,6 @@ router.put('/:id', authenticate, validateGuestUpdate, async (req, res, next) => 
   }
 });
 
-// A guest can only be checked in from a state that means "expected but not
-// here yet." 'approved' is included for forward-compatibility with the
-// admin-approval flow, which isn't built yet — today guests only ever reach
-// 'invited'.
-const CHECK_IN_FROM_STATUSES = ['invited', 'approved'];
-
 router.post('/:id/checkin', authenticateStaff, async (req, res, next) => {
   const id = Number(req.params.id);
   if (!Number.isInteger(id)) {
@@ -196,9 +223,20 @@ router.post('/:id/checkin', authenticateStaff, async (req, res, next) => {
       await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Guest not found' });
     }
-    if (!CHECK_IN_FROM_STATUSES.includes(guest.status)) {
+
+    const policy = await Policy.findByCommunity(req.staff.community_id);
+    // When a community requires admin approval, a guest still sitting in
+    // 'invited' hasn't been reviewed yet — only 'approved' guests get in.
+    // When auto-approval is on, 'invited' is enough (the common case today).
+    const checkInFromStatuses = policy.auto_approval_enabled ? ['invited', 'approved'] : ['approved'];
+    if (!checkInFromStatuses.includes(guest.status)) {
       await client.query('ROLLBACK');
       return res.status(409).json({ error: `Guest cannot be checked in from status: ${guest.status}` });
+    }
+
+    if (policy.require_id_verification && req.body.id_verified !== true) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'This community requires ID verification at check-in' });
     }
 
     const updated = await Guest.checkIn(id, client);
@@ -210,7 +248,7 @@ router.post('/:id/checkin', authenticateStaff, async (req, res, next) => {
       actor_type: 'gate_staff',
       resource_id: id,
       resource_type: 'guest',
-      details: {},
+      details: policy.require_id_verification ? { id_verified: true } : {},
     });
 
     await client.query('COMMIT');

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { UsersThree, CalendarBlank, ArrowCounterClockwise, SignIn, SignOut as SignOutIcon } from '@phosphor-icons/react'
+import { UsersThree, CalendarBlank, ArrowCounterClockwise, SignIn, SignOut as SignOutIcon, Check } from '@phosphor-icons/react'
 import { useStaffAuth } from '@/context/StaffAuthContext'
 import { guestsApi, ApiError } from '@/lib/api'
 import { formatDateTime } from '@/lib/format'
@@ -20,9 +20,6 @@ const STATUS_FILTERS = [
   { value: 'cancelled', label: 'Cancelled' },
 ]
 
-// Mirrors the backend's own transition rules — a guest can only move into
-// these states from here, so those are the only actions ever offered.
-const CHECK_IN_FROM = ['invited', 'approved']
 const CHECK_OUT_FROM = ['checked_in']
 
 // Approximates "real-time" via polling rather than a websocket layer, which
@@ -32,17 +29,20 @@ const POLL_INTERVAL_MS = 20000
 export function StaffGuestsPage() {
   const { token } = useStaffAuth()
   const [guests, setGuests] = useState(null)
+  const [policy, setPolicy] = useState(null)
   const [status, setStatus] = useState('')
   const [error, setError] = useState(null)
   const [actingId, setActingId] = useState(null)
+  const [verifyingId, setVerifyingId] = useState(null)
   const pollRef = useRef(null)
 
   const load = useCallback(
     async ({ silent = false } = {}) => {
       if (!silent) setError(null)
       try {
-        const { guests } = await guestsApi.listGate(token, status || undefined)
+        const { guests, policy } = await guestsApi.listGate(token, status || undefined)
         setGuests(guests)
+        setPolicy(policy)
       } catch (err) {
         if (!silent) setError(err instanceof ApiError ? err.message : 'Could not load guests')
       }
@@ -59,14 +59,39 @@ export function StaffGuestsPage() {
     return () => clearInterval(pollRef.current)
   }, [load])
 
-  const onAction = async (id, action) => {
-    setActingId(id)
+  // A guest can only be checked in from a state that means "expected but not
+  // here yet." Which statuses qualify depends on whether this community
+  // requires admin approval first — matches the backend's own rule exactly.
+  const checkInFromStatuses = policy?.auto_approval_enabled ? ['invited', 'approved'] : ['approved']
+
+  const startCheckIn = (guestId) => {
+    if (policy?.require_id_verification) {
+      setVerifyingId(guestId)
+      return
+    }
+    doCheckIn(guestId)
+  }
+
+  const doCheckIn = async (guestId, idVerified) => {
+    setActingId(guestId)
     try {
-      if (action === 'checkin') await guestsApi.checkIn(token, id)
-      else await guestsApi.checkOut(token, id)
+      await guestsApi.checkIn(token, guestId, idVerified)
+      setVerifyingId(null)
       await load()
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Could not update guest')
+      setError(err instanceof ApiError ? err.message : 'Could not check in guest')
+    } finally {
+      setActingId(null)
+    }
+  }
+
+  const onCheckOut = async (guestId) => {
+    setActingId(guestId)
+    try {
+      await guestsApi.checkOut(token, guestId)
+      await load()
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Could not check out guest')
     } finally {
       setActingId(null)
     }
@@ -112,54 +137,79 @@ export function StaffGuestsPage() {
         )}
 
         {guests?.map((guest, i) => {
-          const canCheckIn = CHECK_IN_FROM.includes(guest.status)
+          const canCheckIn = checkInFromStatuses.includes(guest.status)
           const canCheckOut = CHECK_OUT_FROM.includes(guest.status)
           const acting = actingId === guest.id
+          const verifying = verifyingId === guest.id
 
           return (
             <div
               key={guest.id}
               className={
-                'flex items-center justify-between gap-4 px-4 py-3.5 ' +
+                'flex flex-col gap-3 px-4 py-3.5 ' +
                 (i > 0 ? 'border-t border-neutral-200 dark:border-neutral-800' : '')
               }
             >
-              <div className="flex flex-col gap-0.5 min-w-0">
-                <p className="truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">
-                  {guest.first_name} {guest.last_name}
-                </p>
-                <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">
-                  Invited by {guest.resident_first_name} {guest.resident_last_name}
-                  {guest.resident_unit_number && ` · Unit ${guest.resident_unit_number}`}
-                </p>
-                {guest.scheduled_arrival && (
-                  <p className="flex items-center gap-1 text-xs text-neutral-500 dark:text-neutral-400">
-                    <CalendarBlank size={12} />
-                    {formatDateTime(guest.scheduled_arrival)}
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-col gap-0.5 min-w-0">
+                  <p className="truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                    {guest.first_name} {guest.last_name}
                   </p>
-                )}
+                  <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">
+                    Invited by {guest.resident_first_name} {guest.resident_last_name}
+                    {guest.resident_unit_number && ` · Unit ${guest.resident_unit_number}`}
+                  </p>
+                  {guest.scheduled_arrival && (
+                    <p className="flex items-center gap-1 text-xs text-neutral-500 dark:text-neutral-400">
+                      <CalendarBlank size={12} />
+                      {formatDateTime(guest.scheduled_arrival)}
+                    </p>
+                  )}
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <StatusBadge status={guest.status} />
+                  {canCheckIn && !verifying && (
+                    <Button size="sm" loading={acting} onClick={() => startCheckIn(guest.id)} className="inline-flex items-center gap-1.5">
+                      {!acting && <SignIn size={14} weight="bold" />}
+                      Check in
+                    </Button>
+                  )}
+                  {canCheckOut && (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      loading={acting}
+                      onClick={() => onCheckOut(guest.id)}
+                      className="inline-flex items-center gap-1.5"
+                    >
+                      {!acting && <SignOutIcon size={14} weight="bold" />}
+                      Check out
+                    </Button>
+                  )}
+                </div>
               </div>
-              <div className="flex items-center gap-3 shrink-0">
-                <StatusBadge status={guest.status} />
-                {canCheckIn && (
-                  <Button size="sm" loading={acting} onClick={() => onAction(guest.id, 'checkin')} className="inline-flex items-center gap-1.5">
-                    {!acting && <SignIn size={14} weight="bold" />}
-                    Check in
-                  </Button>
-                )}
-                {canCheckOut && (
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    loading={acting}
-                    onClick={() => onAction(guest.id, 'checkout')}
-                    className="inline-flex items-center gap-1.5"
-                  >
-                    {!acting && <SignOutIcon size={14} weight="bold" />}
-                    Check out
-                  </Button>
-                )}
-              </div>
+
+              {verifying && (
+                <div className="flex items-center justify-between gap-3 rounded-[var(--radius-field)] bg-neutral-50 dark:bg-neutral-800/50 p-2.5">
+                  <p className="text-xs text-neutral-600 dark:text-neutral-300">
+                    This community requires ID verification at check-in
+                  </p>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Button
+                      size="sm"
+                      loading={acting}
+                      onClick={() => doCheckIn(guest.id, true)}
+                      className="inline-flex items-center gap-1.5 whitespace-nowrap"
+                    >
+                      {!acting && <Check size={14} weight="bold" />}
+                      ID verified
+                    </Button>
+                    <Button size="sm" variant="ghost" disabled={acting} onClick={() => setVerifyingId(null)}>
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           )
         })}

@@ -15,13 +15,26 @@ async function emailExistsInCommunity(email, communityId) {
   return rows.length > 0;
 }
 
-async function create({ community_id, email, password: plainPassword, first_name, last_name, phone, unit_number }, client = pool) {
+async function create(
+  { community_id, email, password: plainPassword, first_name, last_name, phone, unit_number, guest_limit_per_month },
+  client = pool
+) {
   const password_hash = await password.hash(plainPassword);
+  // guest_limit_per_month defaults to the schema's DEFAULT 10 when omitted —
+  // callers that know the community's policy (registration) pass it
+  // explicitly so a community's configured default actually takes effect.
+  const columns = ['community_id', 'email', 'password_hash', 'first_name', 'last_name', 'phone', 'unit_number'];
+  const values = [community_id, email, password_hash, first_name, last_name, phone || null, unit_number || null];
+  if (guest_limit_per_month !== undefined) {
+    columns.push('guest_limit_per_month');
+    values.push(guest_limit_per_month);
+  }
+
   const { rows } = await client.query(
-    `INSERT INTO residents (community_id, email, password_hash, first_name, last_name, phone, unit_number)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `INSERT INTO residents (${columns.join(', ')})
+     VALUES (${columns.map((_, i) => `$${i + 1}`).join(', ')})
      RETURNING ${PUBLIC_COLUMNS}`,
-    [community_id, email, password_hash, first_name, last_name, phone || null, unit_number || null]
+    values
   );
   return rows[0];
 }

@@ -297,6 +297,44 @@ function validateCommunityOnboard(req, res, next) {
   next();
 }
 
+function validatePolicyUpdate(req, res, next) {
+  const editable = [
+    'max_guests_per_resident_per_month', 'blacklisted_visitors',
+    'require_id_verification', 'guest_checkout_required', 'auto_approval_enabled',
+  ];
+  const errors = [];
+  const unknownKeys = Object.keys(req.body).filter((k) => !editable.includes(k));
+  if (unknownKeys.length) errors.push(`Unknown fields: ${unknownKeys.join(', ')}`);
+
+  const {
+    max_guests_per_resident_per_month, blacklisted_visitors,
+    require_id_verification, guest_checkout_required, auto_approval_enabled,
+  } = req.body;
+
+  if (max_guests_per_resident_per_month !== undefined) {
+    if (!Number.isInteger(max_guests_per_resident_per_month) || max_guests_per_resident_per_month < 0) {
+      errors.push('max_guests_per_resident_per_month must be a non-negative integer');
+    }
+  }
+  if (blacklisted_visitors !== undefined && blacklisted_visitors !== null && typeof blacklisted_visitors !== 'string') {
+    errors.push('blacklisted_visitors must be a string');
+  }
+  for (const [key, value] of [
+    ['require_id_verification', require_id_verification],
+    ['guest_checkout_required', guest_checkout_required],
+    ['auto_approval_enabled', auto_approval_enabled],
+  ]) {
+    if (value !== undefined && typeof value !== 'boolean') {
+      errors.push(`${key} must be a boolean`);
+    }
+  }
+
+  if (errors.length) {
+    return res.status(400).json({ error: 'Validation failed', details: errors });
+  }
+  next();
+}
+
 module.exports = {
   validateRegister,
   validateLogin,
@@ -315,4 +353,5 @@ module.exports = {
   validatePlatformLogin,
   validateCommunityOnboard,
   SUBSCRIPTION_TIERS,
+  validatePolicyUpdate,
 };
