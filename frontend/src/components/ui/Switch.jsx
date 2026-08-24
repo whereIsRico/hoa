@@ -22,8 +22,8 @@ export function Switch({ checked, onChange, label, description, disabled }) {
         )}
       >
         <motion.span
-          className="absolute top-0.5 size-5 rounded-full bg-white shadow"
-          animate={{ x: checked ? 22 : 2, scale: reduce ? 1 : [1, 1.15, 1] }}
+          className="absolute top-0.5 left-0.5 size-5 rounded-full bg-white shadow"
+          animate={{ x: checked ? 20 : 0, scale: reduce ? 1 : [1, 1.15, 1] }}
           transition={{ type: 'spring', stiffness: 500, damping: 22 }}
         />
       </button>
