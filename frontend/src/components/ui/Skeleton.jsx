@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils'
 
 export function Skeleton({ className }) {
-  return <div className={cn('animate-pulse rounded-md bg-neutral-200 dark:bg-neutral-800', className)} />
+  return <div className={cn('skeleton-shimmer rounded-md', className)} />
 }
 
 // Matches the shape of a guest row so the loading state doesn't jump when

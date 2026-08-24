@@ -1,3 +1,4 @@
+import { motion, useReducedMotion } from 'motion/react'
 import { Badge } from '@/components/ui/Badge'
 
 const STATUS_CONFIG = {
@@ -10,6 +11,18 @@ const STATUS_CONFIG = {
 }
 
 export function StatusBadge({ status }) {
+  const reduce = useReducedMotion()
   const config = STATUS_CONFIG[status] || { label: status, tone: 'neutral' }
-  return <Badge tone={config.tone}>{config.label}</Badge>
+
+  return (
+    <motion.span
+      key={status}
+      initial={reduce ? false : { scale: 0.6, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ type: 'spring', stiffness: 500, damping: 18 }}
+      className="inline-flex"
+    >
+      <Badge tone={config.tone}>{config.label}</Badge>
+    </motion.span>
+  )
 }

@@ -1,5 +1,6 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 import { UsersThree, UserCircle, IdentificationBadge, SlidersHorizontal } from '@phosphor-icons/react'
+import { AnimatedOutlet } from '@/components/AnimatedOutlet'
 import { cn } from '@/lib/utils'
 
 const tabClass = ({ isActive }) =>
@@ -37,7 +38,7 @@ export function AdminLayout() {
         </NavLink>
       </nav>
 
-      <Outlet />
+      <AnimatedOutlet />
     </div>
   )
 }

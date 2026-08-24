@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { motion, useReducedMotion } from 'motion/react'
 import { IdentificationBadge, Plus } from '@phosphor-icons/react'
 import { useAuth } from '@/context/AuthContext'
 import { adminApi, ApiError } from '@/lib/api'
@@ -8,6 +9,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Banner } from '@/components/ui/Banner'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { GuestRowSkeleton } from '@/components/ui/Skeleton'
+import { Avatar } from '@/components/ui/Avatar'
 import { cn } from '@/lib/utils'
 
 function formatShift(start, end) {
@@ -17,6 +19,7 @@ function formatShift(start, end) {
 
 export function AdminStaffPage() {
   const { token } = useAuth()
+  const reduce = useReducedMotion()
   const [staff, setStaff] = useState(null)
   const [error, setError] = useState(null)
 
@@ -31,7 +34,7 @@ export function AdminStaffPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between gap-4">
         <p className="text-sm text-neutral-500 dark:text-neutral-400">Gate staff accounts for this community</p>
-        <Link to="/dashboard/admin/staff/new" className={cn(buttonVariants({ size: 'sm' }), 'inline-flex items-center gap-1.5')}>
+        <Link to="/dashboard/admin/staff/new" className={cn(buttonVariants({ size: 'sm' }), 'inline-flex items-center gap-1.5 active:scale-[0.98] transition-transform')}>
           <Plus size={15} weight="bold" />
           New staff
         </Link>
@@ -56,24 +59,30 @@ export function AdminStaffPage() {
         )}
 
         {staff?.map((s, i) => (
-          <div
+          <motion.div
             key={s.id}
+            initial={reduce ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 26, delay: reduce ? 0 : i * 0.04 }}
             className={
               'flex items-center justify-between gap-4 px-4 py-3.5 ' +
               (i > 0 ? 'border-t border-neutral-200 dark:border-neutral-800' : '')
             }
           >
-            <div className="flex flex-col gap-0.5 min-w-0">
-              <p className="truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">
-                {s.first_name} {s.last_name}
-              </p>
-              <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">
-                {s.email}
-                {formatShift(s.shift_start, s.shift_end) && ` · ${formatShift(s.shift_start, s.shift_end)}`}
-              </p>
+            <div className="flex items-center gap-3 min-w-0">
+              <Avatar name={`${s.first_name} ${s.last_name}`} size="sm" />
+              <div className="flex flex-col gap-0.5 min-w-0">
+                <p className="truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                  {s.first_name} {s.last_name}
+                </p>
+                <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">
+                  {s.email}
+                  {formatShift(s.shift_start, s.shift_end) && ` · ${formatShift(s.shift_start, s.shift_end)}`}
+                </p>
+              </div>
             </div>
             <Badge tone={s.is_active ? 'success' : 'neutral'}>{s.is_active ? 'Active' : 'Inactive'}</Badge>
-          </div>
+          </motion.div>
         ))}
       </div>
     </div>

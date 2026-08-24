@@ -1,8 +1,8 @@
-import { Outlet } from 'react-router-dom'
 import { SignOut } from '@phosphor-icons/react'
 import { usePlatformAuth } from '@/context/PlatformAuthContext'
 import { Button } from '@/components/ui/Button'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { AnimatedOutlet } from '@/components/AnimatedOutlet'
 
 export function PlatformDashboardLayout() {
   const { platformAdmin, logout } = usePlatformAuth()
@@ -32,7 +32,7 @@ export function PlatformDashboardLayout() {
       </header>
 
       <main className="mx-auto max-w-4xl px-4 py-8">
-        <Outlet />
+        <AnimatedOutlet />
       </main>
     </div>
   )

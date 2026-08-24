@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
+import { motion, useReducedMotion } from 'motion/react'
 import { UsersThree, Plus, CalendarBlank, X } from '@phosphor-icons/react'
 import { useAuth } from '@/context/AuthContext'
 import { guestsApi, ApiError } from '@/lib/api'
@@ -10,6 +11,7 @@ import { Banner } from '@/components/ui/Banner'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { GuestRowSkeleton } from '@/components/ui/Skeleton'
 import { StatusBadge } from '@/components/StatusBadge'
+import { Avatar } from '@/components/ui/Avatar'
 import { cn } from '@/lib/utils'
 
 const STATUS_FILTERS = [
@@ -24,6 +26,7 @@ const STATUS_FILTERS = [
 
 export function GuestsPage() {
   const { token } = useAuth()
+  const reduce = useReducedMotion()
   const [guests, setGuests] = useState(null)
   const [status, setStatus] = useState('')
   const [error, setError] = useState(null)
@@ -63,7 +66,7 @@ export function GuestsPage() {
           <h1 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Guests</h1>
           <p className="text-sm text-neutral-500 dark:text-neutral-400">Guests you've invited</p>
         </div>
-        <Link to="/dashboard/guests/new" className={cn(buttonVariants(), 'inline-flex items-center gap-1.5')}>
+        <Link to="/dashboard/guests/new" className={cn(buttonVariants(), 'inline-flex items-center gap-1.5 active:scale-[0.98] transition-transform')}>
           <Plus size={16} weight="bold" />
           New guest
         </Link>
@@ -99,7 +102,7 @@ export function GuestsPage() {
               !status && (
                 <Link
                   to="/dashboard/guests/new"
-                  className={cn(buttonVariants({ size: 'sm' }), 'mt-1 inline-flex items-center gap-1.5')}
+                  className={cn(buttonVariants({ size: 'sm' }), 'mt-1 inline-flex items-center gap-1.5 active:scale-[0.98] transition-transform')}
                 >
                   <Plus size={15} weight="bold" />
                   New guest
@@ -110,23 +113,29 @@ export function GuestsPage() {
         )}
 
         {guests?.map((guest, i) => (
-          <div
+          <motion.div
             key={guest.id}
+            initial={reduce ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 26, delay: reduce ? 0 : i * 0.04 }}
             className={
               'flex items-center justify-between gap-4 px-4 py-3.5 ' +
               (i > 0 ? 'border-t border-neutral-200 dark:border-neutral-800' : '')
             }
           >
-            <div className="flex flex-col gap-0.5 min-w-0">
-              <p className="truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">
-                {guest.first_name} {guest.last_name}
-              </p>
-              {guest.scheduled_arrival && (
-                <p className="flex items-center gap-1 text-xs text-neutral-500 dark:text-neutral-400">
-                  <CalendarBlank size={12} />
-                  {formatDateTime(guest.scheduled_arrival)}
+            <div className="flex items-center gap-3 min-w-0">
+              <Avatar name={`${guest.first_name} ${guest.last_name}`} size="sm" />
+              <div className="flex flex-col gap-0.5 min-w-0">
+                <p className="truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                  {guest.first_name} {guest.last_name}
                 </p>
-              )}
+                {guest.scheduled_arrival && (
+                  <p className="flex items-center gap-1 text-xs text-neutral-500 dark:text-neutral-400">
+                    <CalendarBlank size={12} />
+                    {formatDateTime(guest.scheduled_arrival)}
+                  </p>
+                )}
+              </div>
             </div>
             <div className="flex items-center gap-3 shrink-0">
               <StatusBadge status={guest.status} />
@@ -143,7 +152,7 @@ export function GuestsPage() {
                 </Button>
               )}
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
     </div>

@@ -1,6 +1,9 @@
+import { motion, useReducedMotion } from 'motion/react'
 import { cn } from '@/lib/utils'
 
 export function Switch({ checked, onChange, label, description, disabled }) {
+  const reduce = useReducedMotion()
+
   return (
     <label className={cn('flex items-start justify-between gap-4 py-1', disabled ? 'opacity-50' : 'cursor-pointer')}>
       <div className="flex flex-col gap-0.5">
@@ -18,11 +21,10 @@ export function Switch({ checked, onChange, label, description, disabled }) {
           checked ? 'bg-accent-600' : 'bg-neutral-300 dark:bg-neutral-700'
         )}
       >
-        <span
-          className={cn(
-            'absolute top-0.5 size-5 rounded-full bg-white shadow transition-transform',
-            checked ? 'translate-x-[22px]' : 'translate-x-0.5'
-          )}
+        <motion.span
+          className="absolute top-0.5 size-5 rounded-full bg-white shadow"
+          animate={{ x: checked ? 22 : 2, scale: reduce ? 1 : [1, 1.15, 1] }}
+          transition={{ type: 'spring', stiffness: 500, damping: 22 }}
         />
       </button>
     </label>

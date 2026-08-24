@@ -1,9 +1,10 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 import { UsersThree, UserCircle, SignOut, ShieldCheck } from '@phosphor-icons/react'
 import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/Button'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { Banner } from '@/components/ui/Banner'
+import { AnimatedOutlet } from '@/components/AnimatedOutlet'
 import { cn } from '@/lib/utils'
 
 const navLinkClass = ({ isActive }) =>
@@ -55,7 +56,7 @@ export function DashboardLayout() {
             You'll be able to invite guests once an administrator approves your account.
           </Banner>
         )}
-        <Outlet />
+        <AnimatedOutlet />
       </main>
     </div>
   )

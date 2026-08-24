@@ -89,4 +89,40 @@
   ::selection {
     @apply bg-accent-300/60;
   }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .skeleton-shimmer {
+      background: linear-gradient(
+        90deg,
+        var(--color-neutral-200) 25%,
+        var(--color-neutral-100) 50%,
+        var(--color-neutral-200) 75%
+      );
+      background-size: 200% 100%;
+      animation: skeleton-shimmer 1.6s ease-in-out infinite;
+    }
+    html.dark .skeleton-shimmer {
+      background: linear-gradient(
+        90deg,
+        var(--color-neutral-800) 25%,
+        var(--color-neutral-700) 50%,
+        var(--color-neutral-800) 75%
+      );
+      background-size: 200% 100%;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton-shimmer {
+      @apply bg-neutral-200 dark:bg-neutral-800;
+    }
+  }
+
+  @keyframes skeleton-shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
 }

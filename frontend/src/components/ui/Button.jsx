@@ -1,12 +1,12 @@
 import { forwardRef } from 'react'
 import { cva } from 'class-variance-authority'
+import { motion, useReducedMotion } from 'motion/react'
 import { cn } from '@/lib/utils'
 
 export const buttonVariants = cva(
   'inline-flex items-center justify-center gap-2 rounded-[var(--radius-field)] text-sm font-medium transition-colors ' +
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 ' +
-    'ring-offset-neutral-0 dark:ring-offset-neutral-950 disabled:pointer-events-none disabled:opacity-50 ' +
-    'active:scale-[0.98]',
+    'ring-offset-neutral-0 dark:ring-offset-neutral-950 disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
@@ -26,21 +26,31 @@ export const buttonVariants = cva(
   }
 )
 
+// Press/hover feedback is Motion-driven here (spring physics, slight
+// overshoot) rather than CSS active:scale — the two would fight over the
+// same transform if both applied to this element. Plain buttonVariants
+// (used directly on non-Button elements like CTA Links) still gets a CSS
+// fallback where it's applied.
 export const Button = forwardRef(function Button(
   { className, variant, size, loading, children, disabled, ...props },
   ref
 ) {
+  const reduce = useReducedMotion()
+
   return (
-    <button
+    <motion.button
       ref={ref}
       className={cn(buttonVariants({ variant, size }), className)}
       disabled={disabled || loading}
+      whileHover={reduce || disabled || loading ? undefined : { scale: 1.02 }}
+      whileTap={reduce || disabled || loading ? undefined : { scale: 0.96 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 15 }}
       {...props}
     >
       {loading && (
         <span className="size-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
       )}
       {children}
-    </button>
+    </motion.button>
   )
 })

@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
+import { motion, useReducedMotion } from 'motion/react'
 import { UsersThree, CalendarBlank, ArrowCounterClockwise, SignIn, SignOut as SignOutIcon, Check } from '@phosphor-icons/react'
 import { useStaffAuth } from '@/context/StaffAuthContext'
 import { guestsApi, ApiError } from '@/lib/api'
@@ -9,6 +10,7 @@ import { Banner } from '@/components/ui/Banner'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { GuestRowSkeleton } from '@/components/ui/Skeleton'
 import { StatusBadge } from '@/components/StatusBadge'
+import { Avatar } from '@/components/ui/Avatar'
 
 const STATUS_FILTERS = [
   { value: '', label: 'All statuses' },
@@ -28,6 +30,7 @@ const POLL_INTERVAL_MS = 20000
 
 export function StaffGuestsPage() {
   const { token } = useStaffAuth()
+  const reduce = useReducedMotion()
   const [guests, setGuests] = useState(null)
   const [policy, setPolicy] = useState(null)
   const [status, setStatus] = useState('')
@@ -143,28 +146,34 @@ export function StaffGuestsPage() {
           const verifying = verifyingId === guest.id
 
           return (
-            <div
+            <motion.div
               key={guest.id}
+              initial={reduce ? false : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 26, delay: reduce ? 0 : i * 0.04 }}
               className={
                 'flex flex-col gap-3 px-4 py-3.5 ' +
                 (i > 0 ? 'border-t border-neutral-200 dark:border-neutral-800' : '')
               }
             >
               <div className="flex items-center justify-between gap-4">
-                <div className="flex flex-col gap-0.5 min-w-0">
-                  <p className="truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">
-                    {guest.first_name} {guest.last_name}
-                  </p>
-                  <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">
-                    Invited by {guest.resident_first_name} {guest.resident_last_name}
-                    {guest.resident_unit_number && ` · Unit ${guest.resident_unit_number}`}
-                  </p>
-                  {guest.scheduled_arrival && (
-                    <p className="flex items-center gap-1 text-xs text-neutral-500 dark:text-neutral-400">
-                      <CalendarBlank size={12} />
-                      {formatDateTime(guest.scheduled_arrival)}
+                <div className="flex items-center gap-3 min-w-0">
+                  <Avatar name={`${guest.first_name} ${guest.last_name}`} size="sm" />
+                  <div className="flex flex-col gap-0.5 min-w-0">
+                    <p className="truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                      {guest.first_name} {guest.last_name}
                     </p>
-                  )}
+                    <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">
+                      Invited by {guest.resident_first_name} {guest.resident_last_name}
+                      {guest.resident_unit_number && ` · Unit ${guest.resident_unit_number}`}
+                    </p>
+                    {guest.scheduled_arrival && (
+                      <p className="flex items-center gap-1 text-xs text-neutral-500 dark:text-neutral-400">
+                        <CalendarBlank size={12} />
+                        {formatDateTime(guest.scheduled_arrival)}
+                      </p>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
                   <StatusBadge status={guest.status} />
@@ -210,7 +219,7 @@ export function StaffGuestsPage() {
                   </div>
                 </div>
               )}
-            </div>
+            </motion.div>
           )
         })}
       </div>
