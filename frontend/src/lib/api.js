@@ -69,3 +69,14 @@ export const adminApi = {
   listStaff: (token) => request('/api/admin/staff', { token }),
   createStaff: (token, payload) => request('/api/admin/staff', { method: 'POST', token, body: payload }),
 }
+
+export const platformAuthApi = {
+  login: (payload) => request('/api/auth/platform-login', { method: 'POST', body: payload }),
+}
+
+export const platformApi = {
+  me: (token) => request('/api/platform/me', { token }),
+  listCommunities: (token) => request('/api/platform/communities', { token }),
+  onboardCommunity: (token, payload) => request('/api/platform/communities', { method: 'POST', token, body: payload }),
+  communityAuditLogs: (token, id) => request(`/api/platform/communities/${id}/audit-logs`, { token }),
+}

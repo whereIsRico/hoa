@@ -4,11 +4,13 @@ require('dotenv').config({ quiet: true });
 
 const authRoutes = require('./routes/auth');
 const staffAuthRoutes = require('./routes/staffAuth');
+const platformAuthRoutes = require('./routes/platformAuth');
 const residentRoutes = require('./routes/residents');
 const communityRoutes = require('./routes/communities');
 const guestRoutes = require('./routes/guests');
 const adminRoutes = require('./routes/admin');
 const staffRoutes = require('./routes/staff');
+const platformRoutes = require('./routes/platform');
 
 const app = express();
 
@@ -29,11 +31,13 @@ app.get('/', (req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/auth', staffAuthRoutes);
+app.use('/api/auth', platformAuthRoutes);
 app.use('/api/residents', residentRoutes);
 app.use('/api/communities', communityRoutes);
 app.use('/api/guests', guestRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/staff', staffRoutes);
+app.use('/api/platform', platformRoutes);
 
 // Error handling
 app.use((err, req, res, next) => {

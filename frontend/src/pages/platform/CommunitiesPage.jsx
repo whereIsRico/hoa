@@ -1,0 +1,89 @@
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { Buildings, Plus, UsersThree, UserCircle, IdentificationBadge } from '@phosphor-icons/react'
+import { usePlatformAuth } from '@/context/PlatformAuthContext'
+import { platformApi, ApiError } from '@/lib/api'
+import { buttonVariants } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import { Banner } from '@/components/ui/Banner'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { GuestRowSkeleton } from '@/components/ui/Skeleton'
+import { cn } from '@/lib/utils'
+
+const TIER_LABELS = { starter: 'Starter', professional: 'Professional', enterprise: 'Enterprise' }
+
+export function CommunitiesPage() {
+  const { token } = usePlatformAuth()
+  const [communities, setCommunities] = useState(null)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    platformApi
+      .listCommunities(token)
+      .then(({ communities }) => setCommunities(communities))
+      .catch((err) => setError(err instanceof ApiError ? err.message : 'Could not load communities'))
+  }, [token])
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Communities</h1>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">Every HOA on the platform</p>
+        </div>
+        <Link to="/platform/communities/new" className={cn(buttonVariants({ size: 'sm' }), 'inline-flex items-center gap-1.5')}>
+          <Plus size={15} weight="bold" />
+          Onboard HOA
+        </Link>
+      </div>
+
+      {error && <Banner tone="danger">{error}</Banner>}
+
+      <div className="overflow-hidden rounded-[var(--radius-card)] border border-neutral-200 dark:border-neutral-800">
+        {communities === null && !error && (
+          <>
+            <GuestRowSkeleton />
+            <GuestRowSkeleton />
+          </>
+        )}
+
+        {communities?.length === 0 && (
+          <EmptyState icon={Buildings} title="No communities yet" description="Onboard your first HOA to get started" />
+        )}
+
+        {communities?.map((c, i) => (
+          <Link
+            key={c.id}
+            to={`/platform/communities/${c.id}`}
+            className={
+              'flex items-center justify-between gap-4 px-4 py-3.5 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/50 ' +
+              (i > 0 ? 'border-t border-neutral-200 dark:border-neutral-800' : '')
+            }
+          >
+            <div className="flex flex-col gap-0.5 min-w-0">
+              <p className="truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">{c.name}</p>
+              <div className="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-400">
+                <span className="flex items-center gap-1">
+                  <UserCircle size={13} />
+                  {c.resident_count}
+                </span>
+                <span className="flex items-center gap-1">
+                  <UsersThree size={13} />
+                  {c.guest_count}
+                </span>
+                <span className="flex items-center gap-1">
+                  <IdentificationBadge size={13} />
+                  {c.staff_count}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Badge tone="approved">{TIER_LABELS[c.subscription_tier] || c.subscription_tier}</Badge>
+              <Badge tone={c.is_active ? 'success' : 'neutral'}>{c.is_active ? 'Active' : 'Inactive'}</Badge>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </div>
+  )
+}

@@ -15,9 +15,9 @@ async function emailExistsInCommunity(email, communityId) {
   return rows.length > 0;
 }
 
-async function create({ community_id, email, password: plainPassword, first_name, last_name, phone, unit_number }) {
+async function create({ community_id, email, password: plainPassword, first_name, last_name, phone, unit_number }, client = pool) {
   const password_hash = await password.hash(plainPassword);
-  const { rows } = await pool.query(
+  const { rows } = await client.query(
     `INSERT INTO residents (community_id, email, password_hash, first_name, last_name, phone, unit_number)
      VALUES ($1, $2, $3, $4, $5, $6, $7)
      RETURNING ${PUBLIC_COLUMNS}`,

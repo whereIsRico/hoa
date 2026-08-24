@@ -108,6 +108,19 @@ CREATE TABLE subscriptions (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Platform admins (Threshold staff — not scoped to any single community,
+-- unlike HOA admins. Can onboard new communities and their first admin.)
+CREATE TABLE platform_admins (
+  id SERIAL PRIMARY KEY,
+  first_name VARCHAR(255) NOT NULL,
+  last_name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Indexes for faster queries
 CREATE INDEX idx_residents_community ON residents(community_id);
 CREATE INDEX idx_guests_community ON guests(community_id);

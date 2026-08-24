@@ -1,11 +1,14 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from '@/context/AuthContext'
 import { StaffAuthProvider } from '@/context/StaffAuthContext'
+import { PlatformAuthProvider } from '@/context/PlatformAuthContext'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { PublicOnlyRoute } from '@/components/PublicOnlyRoute'
 import { AdminProtectedRoute } from '@/components/AdminProtectedRoute'
 import { StaffProtectedRoute } from '@/components/StaffProtectedRoute'
 import { StaffPublicOnlyRoute } from '@/components/StaffPublicOnlyRoute'
+import { PlatformProtectedRoute } from '@/components/PlatformProtectedRoute'
+import { PlatformPublicOnlyRoute } from '@/components/PlatformPublicOnlyRoute'
 import { LoginPage } from '@/pages/LoginPage'
 import { RegisterPage } from '@/pages/RegisterPage'
 import { DashboardLayout } from '@/pages/DashboardLayout'
@@ -20,49 +23,69 @@ import { AdminGuestsPage } from '@/pages/admin/AdminGuestsPage'
 import { AdminResidentsPage } from '@/pages/admin/AdminResidentsPage'
 import { AdminStaffPage } from '@/pages/admin/AdminStaffPage'
 import { NewStaffPage } from '@/pages/admin/NewStaffPage'
+import { PlatformLoginPage } from '@/pages/platform/PlatformLoginPage'
+import { PlatformDashboardLayout } from '@/pages/platform/PlatformDashboardLayout'
+import { CommunitiesPage } from '@/pages/platform/CommunitiesPage'
+import { NewCommunityPage } from '@/pages/platform/NewCommunityPage'
+import { CommunityDetailPage } from '@/pages/platform/CommunityDetailPage'
 
 export default function App() {
   return (
     <AuthProvider>
       <StaffAuthProvider>
-        <Routes>
-          <Route element={<PublicOnlyRoute />}>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-          </Route>
+        <PlatformAuthProvider>
+          <Routes>
+            <Route element={<PublicOnlyRoute />}>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+            </Route>
 
-          <Route element={<ProtectedRoute />}>
-            <Route path="/dashboard" element={<DashboardLayout />}>
-              <Route index element={<Navigate to="guests" replace />} />
-              <Route path="guests" element={<GuestsPage />} />
-              <Route path="guests/new" element={<NewGuestPage />} />
-              <Route path="profile" element={<ProfilePage />} />
+            <Route element={<ProtectedRoute />}>
+              <Route path="/dashboard" element={<DashboardLayout />}>
+                <Route index element={<Navigate to="guests" replace />} />
+                <Route path="guests" element={<GuestsPage />} />
+                <Route path="guests/new" element={<NewGuestPage />} />
+                <Route path="profile" element={<ProfilePage />} />
 
-              <Route element={<AdminProtectedRoute />}>
-                <Route path="admin" element={<AdminLayout />}>
-                  <Route index element={<Navigate to="guests" replace />} />
-                  <Route path="guests" element={<AdminGuestsPage />} />
-                  <Route path="residents" element={<AdminResidentsPage />} />
-                  <Route path="staff" element={<AdminStaffPage />} />
-                  <Route path="staff/new" element={<NewStaffPage />} />
+                <Route element={<AdminProtectedRoute />}>
+                  <Route path="admin" element={<AdminLayout />}>
+                    <Route index element={<Navigate to="guests" replace />} />
+                    <Route path="guests" element={<AdminGuestsPage />} />
+                    <Route path="residents" element={<AdminResidentsPage />} />
+                    <Route path="staff" element={<AdminStaffPage />} />
+                    <Route path="staff/new" element={<NewStaffPage />} />
+                  </Route>
                 </Route>
               </Route>
             </Route>
-          </Route>
 
-          <Route element={<StaffPublicOnlyRoute />}>
-            <Route path="/staff/login" element={<StaffLoginPage />} />
-          </Route>
-
-          <Route element={<StaffProtectedRoute />}>
-            <Route path="/staff/dashboard" element={<StaffDashboardLayout />}>
-              <Route index element={<StaffGuestsPage />} />
+            <Route element={<StaffPublicOnlyRoute />}>
+              <Route path="/staff/login" element={<StaffLoginPage />} />
             </Route>
-          </Route>
 
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+            <Route element={<StaffProtectedRoute />}>
+              <Route path="/staff/dashboard" element={<StaffDashboardLayout />}>
+                <Route index element={<StaffGuestsPage />} />
+              </Route>
+            </Route>
+
+            <Route element={<PlatformPublicOnlyRoute />}>
+              <Route path="/platform/login" element={<PlatformLoginPage />} />
+            </Route>
+
+            <Route element={<PlatformProtectedRoute />}>
+              <Route path="/platform" element={<PlatformDashboardLayout />}>
+                <Route index element={<Navigate to="communities" replace />} />
+                <Route path="communities" element={<CommunitiesPage />} />
+                <Route path="communities/new" element={<NewCommunityPage />} />
+                <Route path="communities/:id" element={<CommunityDetailPage />} />
+              </Route>
+            </Route>
+
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </PlatformAuthProvider>
       </StaffAuthProvider>
     </AuthProvider>
   )

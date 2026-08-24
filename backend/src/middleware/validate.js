@@ -240,6 +240,63 @@ function validateApprovalChange(req, res, next) {
   next();
 }
 
+function validatePlatformLogin(req, res, next) {
+  const { email, password } = req.body;
+  const errors = [];
+
+  if (!email || !EMAIL_RE.test(email)) errors.push('A valid email is required');
+  if (!password) errors.push('password is required');
+
+  if (errors.length) {
+    return res.status(400).json({ error: 'Validation failed', details: errors });
+  }
+  next();
+}
+
+const SUBSCRIPTION_TIERS = ['starter', 'professional', 'enterprise'];
+
+function validateCommunityOnboard(req, res, next) {
+  const {
+    community_name, community_email, community_phone, community_address, subscription_tier,
+    admin_first_name, admin_last_name, admin_email, admin_password,
+  } = req.body;
+  const errors = [];
+
+  if (!community_name || typeof community_name !== 'string' || !community_name.trim()) {
+    errors.push('community_name is required');
+  }
+  if (community_email !== undefined && community_email !== null && !EMAIL_RE.test(community_email)) {
+    errors.push('community_email must be a valid email');
+  }
+  if (community_phone !== undefined && community_phone !== null && typeof community_phone !== 'string') {
+    errors.push('community_phone must be a string');
+  }
+  if (community_address !== undefined && community_address !== null && typeof community_address !== 'string') {
+    errors.push('community_address must be a string');
+  }
+  if (subscription_tier !== undefined && !SUBSCRIPTION_TIERS.includes(subscription_tier)) {
+    errors.push(`subscription_tier must be one of: ${SUBSCRIPTION_TIERS.join(', ')}`);
+  }
+
+  if (!admin_first_name || typeof admin_first_name !== 'string' || !admin_first_name.trim()) {
+    errors.push('admin_first_name is required');
+  }
+  if (!admin_last_name || typeof admin_last_name !== 'string' || !admin_last_name.trim()) {
+    errors.push('admin_last_name is required');
+  }
+  if (!admin_email || !EMAIL_RE.test(admin_email)) {
+    errors.push('A valid admin_email is required');
+  }
+  if (!admin_password || typeof admin_password !== 'string' || admin_password.length < 8) {
+    errors.push('admin_password is required and must be at least 8 characters');
+  }
+
+  if (errors.length) {
+    return res.status(400).json({ error: 'Validation failed', details: errors });
+  }
+  next();
+}
+
 module.exports = {
   validateRegister,
   validateLogin,
@@ -255,4 +312,7 @@ module.exports = {
   validateRoleChange,
   RESIDENT_ROLE_VALUES,
   validateApprovalChange,
+  validatePlatformLogin,
+  validateCommunityOnboard,
+  SUBSCRIPTION_TIERS,
 };
