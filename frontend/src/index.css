@@ -1,43 +1,59 @@
 @import "tailwindcss";
 @import "@fontsource-variable/geist";
 @import "@fontsource-variable/geist-mono";
+@import "@fontsource-variable/sora";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
   --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono Variable", ui-monospace, monospace;
+  /* Headings only — more character than Geist alone, still sans, still calm. */
+  --font-display: "Sora Variable", "Geist Variable", ui-sans-serif, sans-serif;
 
-  /* Neutral scale (zinc-derived, off-black/off-white — never pure) */
-  --color-neutral-0: oklch(99% 0 0);
-  --color-neutral-50: oklch(97.5% 0.002 260);
-  --color-neutral-100: oklch(94.5% 0.003 260);
-  --color-neutral-200: oklch(89% 0.004 260);
-  --color-neutral-300: oklch(80% 0.006 260);
-  --color-neutral-400: oklch(64% 0.008 260);
-  --color-neutral-500: oklch(52% 0.008 260);
-  --color-neutral-600: oklch(42% 0.008 260);
-  --color-neutral-700: oklch(32% 0.007 260);
-  --color-neutral-800: oklch(23% 0.006 260);
-  --color-neutral-900: oklch(16% 0.005 260);
-  --color-neutral-950: oklch(11% 0.004 260);
+  /* Warm sand/stone neutral scale (hue ~75) — off-black/off-white, never pure,
+     and never cold blue-gray. This is the base of the "coastal" read. */
+  --color-neutral-0: oklch(99% 0.002 80);
+  --color-neutral-50: oklch(97.3% 0.005 80);
+  --color-neutral-100: oklch(94.5% 0.008 75);
+  --color-neutral-200: oklch(89% 0.012 75);
+  --color-neutral-300: oklch(80% 0.015 75);
+  --color-neutral-400: oklch(64% 0.018 75);
+  --color-neutral-500: oklch(52% 0.015 75);
+  --color-neutral-600: oklch(42% 0.014 75);
+  --color-neutral-700: oklch(32% 0.012 75);
+  --color-neutral-800: oklch(23% 0.010 75);
+  --color-neutral-900: oklch(16% 0.008 75);
+  --color-neutral-950: oklch(11% 0.006 75);
 
-  /* Single brand accent: cobalt blue. Used for primary actions/links only. */
-  --color-accent-100: oklch(93% 0.03 255);
-  --color-accent-300: oklch(78% 0.09 255);
-  --color-accent-500: oklch(58% 0.17 255);
-  --color-accent-600: oklch(51% 0.18 255);
-  --color-accent-700: oklch(43% 0.17 255);
-  --color-accent-900: oklch(27% 0.11 255);
+  /* Brand accent: deep turquoise (Nassau ocean), not corporate blue.
+     Used for primary actions/links/focus rings — the one accent color. */
+  --color-accent-100: oklch(94% 0.03 195);
+  --color-accent-300: oklch(80% 0.075 195);
+  --color-accent-500: oklch(58% 0.10 195);
+  --color-accent-600: oklch(48% 0.095 195);
+  --color-accent-700: oklch(40% 0.085 195);
+  --color-accent-900: oklch(26% 0.06 195);
+
+  /* Coral — a second, deliberately distinct semantic color for warnings/
+     attention states (e.g. pending-approval banners). Not the brand accent;
+     not the danger red. Warm, but not corporate. */
+  --color-coral-100: oklch(94% 0.035 38);
+  --color-coral-300: oklch(82% 0.09 38);
+  --color-coral-500: oklch(68% 0.15 38);
+  --color-coral-600: oklch(60% 0.16 38);
+  --color-coral-700: oklch(48% 0.14 38);
 
   /* Semantic status colors for guest badges — distinct from the brand accent */
   --color-status-neutral: var(--color-neutral-500);
   --color-status-approved: var(--color-accent-600);
-  --color-status-success: oklch(58% 0.14 152);
-  --color-status-danger: oklch(56% 0.19 25);
-  --color-status-danger-bg: oklch(96% 0.03 25);
-  --color-status-success-bg: oklch(95% 0.04 152);
   --color-status-approved-bg: var(--color-accent-100);
+  --color-status-warning: var(--color-coral-700);
+  --color-status-warning-bg: var(--color-coral-100);
+  --color-status-success: oklch(58% 0.13 145);
+  --color-status-success-bg: oklch(95% 0.04 145);
+  --color-status-danger: oklch(56% 0.19 22);
+  --color-status-danger-bg: oklch(96% 0.03 22);
 
   --radius-field: 8px;
   --radius-card: 12px;
@@ -49,12 +65,26 @@
   }
   html.dark {
     color-scheme: dark;
+    /* Status badge/banner backgrounds were never dark-mode-aware — a light
+       coral/red/green pill sitting on a near-black page reads as broken, not
+       "on brand." Darken the fills and brighten the text for each. */
+    --color-status-approved-bg: oklch(28% 0.05 195);
+    --color-status-approved: oklch(78% 0.08 195);
+    --color-status-warning-bg: oklch(28% 0.05 38);
+    --color-status-warning: oklch(80% 0.08 38);
+    --color-status-success-bg: oklch(26% 0.05 145);
+    --color-status-success: oklch(75% 0.11 145);
+    --color-status-danger-bg: oklch(28% 0.06 22);
+    --color-status-danger: oklch(78% 0.12 22);
   }
   body {
     @apply bg-neutral-0 text-neutral-900 font-sans antialiased;
   }
   html.dark body {
     @apply bg-neutral-950 text-neutral-100;
+  }
+  h1, h2, h3 {
+    font-family: var(--font-display);
   }
   ::selection {
     @apply bg-accent-300/60;

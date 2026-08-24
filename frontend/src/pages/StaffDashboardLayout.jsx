@@ -12,7 +12,7 @@ export function StaffDashboardLayout() {
       <header className="sticky top-0 z-10 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-0/90 dark:bg-neutral-900/90 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-4">
           <div className="flex items-baseline gap-2">
-            <span className="text-base font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
+            <span className="font-display text-base font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
               Passage
             </span>
             <span className="text-sm text-neutral-400 dark:text-neutral-500">Gate</span>

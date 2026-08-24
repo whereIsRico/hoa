@@ -21,7 +21,7 @@ export function DashboardLayout() {
     <div className="min-h-dvh bg-neutral-50 dark:bg-neutral-950">
       <header className="sticky top-0 z-10 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-0/90 dark:bg-neutral-900/90 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-4">
-          <span className="text-base font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
+          <span className="font-display text-base font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
             Passage
           </span>
           <nav className="flex items-center gap-1">

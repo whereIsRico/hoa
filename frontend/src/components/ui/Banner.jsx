@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 
 const icons = { warning: WarningCircle, success: CheckCircle, danger: XCircle, info: Info }
 const tones = {
-  warning: 'bg-status-approved-bg text-status-approved border-accent-300',
+  warning: 'bg-status-warning-bg text-status-warning border-coral-300',
   success: 'bg-status-success-bg text-status-success border-status-success/30',
   danger: 'bg-status-danger-bg text-status-danger border-status-danger/30',
   info: 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 border-neutral-300 dark:border-neutral-700',
