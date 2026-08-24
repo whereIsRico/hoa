@@ -45,8 +45,16 @@ async function findById(id) {
   return rows[0] || null;
 }
 
+async function listForCommunity(communityId) {
+  const { rows } = await pool.query(
+    `SELECT ${PUBLIC_COLUMNS} FROM gate_staff WHERE community_id = $1 ORDER BY created_at DESC`,
+    [communityId]
+  );
+  return rows;
+}
+
 async function verifyPassword(plainPassword, passwordHash) {
   return password.compare(plainPassword, passwordHash);
 }
 
-module.exports = { emailExistsInCommunity, create, findByEmailAndCommunity, findById, verifyPassword };
+module.exports = { emailExistsInCommunity, create, findByEmailAndCommunity, findById, listForCommunity, verifyPassword };

@@ -81,6 +81,22 @@ async function findByIdInCommunity(id, communityId, client = pool) {
   return rows[0] || null;
 }
 
+async function listForCommunity(communityId, { approved } = {}) {
+  const conditions = ['community_id = $1'];
+  const values = [communityId];
+
+  if (approved !== undefined) {
+    values.push(approved);
+    conditions.push(`is_approved = $${values.length}`);
+  }
+
+  const { rows } = await pool.query(
+    `SELECT ${PUBLIC_COLUMNS} FROM residents WHERE ${conditions.join(' AND ')} ORDER BY created_at DESC`,
+    values
+  );
+  return rows;
+}
+
 async function countAdminsInCommunity(communityId, client = pool) {
   const { rows } = await client.query(
     "SELECT COUNT(*)::int AS count FROM residents WHERE community_id = $1 AND role = 'admin'",
@@ -111,6 +127,7 @@ module.exports = {
   findByEmailAndCommunity,
   findById,
   findByIdInCommunity,
+  listForCommunity,
   countAdminsInCommunity,
   updateRole,
   updateApproval,

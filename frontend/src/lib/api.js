@@ -54,4 +54,18 @@ export const guestsApi = {
   listGate: (token, status) => request(`/api/guests/gate${status ? `?status=${status}` : ''}`, { token }),
   checkIn: (token, id) => request(`/api/guests/${id}/checkin`, { method: 'POST', token }),
   checkOut: (token, id) => request(`/api/guests/${id}/checkout`, { method: 'POST', token }),
+  listAdmin: (token, status) => request(`/api/guests/admin${status ? `?status=${status}` : ''}`, { token }),
+  approve: (token, id) => request(`/api/guests/${id}/approve`, { method: 'POST', token }),
+  deny: (token, id, reason) => request(`/api/guests/${id}/deny`, { method: 'POST', token, body: reason ? { reason } : {} }),
+}
+
+export const adminApi = {
+  listResidents: (token, approved) =>
+    request(`/api/admin/residents${approved !== undefined ? `?approved=${approved}` : ''}`, { token }),
+  updateResidentApproval: (token, id, approved) =>
+    request(`/api/admin/residents/${id}/approval`, { method: 'PUT', token, body: { approved } }),
+  updateResidentRole: (token, id, role) =>
+    request(`/api/admin/residents/${id}/role`, { method: 'PUT', token, body: { role } }),
+  listStaff: (token) => request('/api/admin/staff', { token }),
+  createStaff: (token, payload) => request('/api/admin/staff', { method: 'POST', token, body: payload }),
 }

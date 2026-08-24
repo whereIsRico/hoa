@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { UsersThree, UserCircle, SignOut } from '@phosphor-icons/react'
+import { UsersThree, UserCircle, SignOut, ShieldCheck } from '@phosphor-icons/react'
 import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/Button'
 import { ThemeToggle } from '@/components/ThemeToggle'
@@ -33,6 +33,12 @@ export function DashboardLayout() {
               <UserCircle size={16} />
               Profile
             </NavLink>
+            {resident?.role === 'admin' && (
+              <NavLink to="/dashboard/admin" className={navLinkClass}>
+                <ShieldCheck size={16} />
+                Admin
+              </NavLink>
+            )}
           </nav>
           <div className="flex items-center gap-1.5">
             <ThemeToggle />

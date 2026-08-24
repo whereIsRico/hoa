@@ -3,6 +3,7 @@ import { AuthProvider } from '@/context/AuthContext'
 import { StaffAuthProvider } from '@/context/StaffAuthContext'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { PublicOnlyRoute } from '@/components/PublicOnlyRoute'
+import { AdminProtectedRoute } from '@/components/AdminProtectedRoute'
 import { StaffProtectedRoute } from '@/components/StaffProtectedRoute'
 import { StaffPublicOnlyRoute } from '@/components/StaffPublicOnlyRoute'
 import { LoginPage } from '@/pages/LoginPage'
@@ -14,6 +15,11 @@ import { ProfilePage } from '@/pages/ProfilePage'
 import { StaffLoginPage } from '@/pages/StaffLoginPage'
 import { StaffDashboardLayout } from '@/pages/StaffDashboardLayout'
 import { StaffGuestsPage } from '@/pages/StaffGuestsPage'
+import { AdminLayout } from '@/pages/admin/AdminLayout'
+import { AdminGuestsPage } from '@/pages/admin/AdminGuestsPage'
+import { AdminResidentsPage } from '@/pages/admin/AdminResidentsPage'
+import { AdminStaffPage } from '@/pages/admin/AdminStaffPage'
+import { NewStaffPage } from '@/pages/admin/NewStaffPage'
 
 export default function App() {
   return (
@@ -31,6 +37,16 @@ export default function App() {
               <Route path="guests" element={<GuestsPage />} />
               <Route path="guests/new" element={<NewGuestPage />} />
               <Route path="profile" element={<ProfilePage />} />
+
+              <Route element={<AdminProtectedRoute />}>
+                <Route path="admin" element={<AdminLayout />}>
+                  <Route index element={<Navigate to="guests" replace />} />
+                  <Route path="guests" element={<AdminGuestsPage />} />
+                  <Route path="residents" element={<AdminResidentsPage />} />
+                  <Route path="staff" element={<AdminStaffPage />} />
+                  <Route path="staff/new" element={<NewStaffPage />} />
+                </Route>
+              </Route>
             </Route>
           </Route>
 

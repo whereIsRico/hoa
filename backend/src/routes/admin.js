@@ -10,6 +10,31 @@ const { validateStaffCreate, validateRoleChange, validateApprovalChange } = requ
 
 const router = express.Router();
 
+router.get('/residents', authenticate, requireAdmin, async (req, res, next) => {
+  try {
+    const { approved } = req.query;
+    if (approved !== undefined && approved !== 'true' && approved !== 'false') {
+      return res.status(400).json({ error: 'approved must be "true" or "false"' });
+    }
+
+    const residents = await Resident.listForCommunity(req.user.community_id, {
+      approved: approved === undefined ? undefined : approved === 'true',
+    });
+    res.json({ residents });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/staff', authenticate, requireAdmin, async (req, res, next) => {
+  try {
+    const staff = await GateStaff.listForCommunity(req.user.community_id);
+    res.json({ staff });
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.post('/staff', authenticate, requireAdmin, validateStaffCreate, async (req, res, next) => {
   const client = await pool.connect();
   try {
