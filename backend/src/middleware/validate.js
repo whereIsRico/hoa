@@ -224,6 +224,22 @@ function validateRoleChange(req, res, next) {
   next();
 }
 
+function validateApprovalChange(req, res, next) {
+  const errors = [];
+  const unknownKeys = Object.keys(req.body).filter((k) => k !== 'approved');
+  if (unknownKeys.length) errors.push(`Unknown fields: ${unknownKeys.join(', ')}`);
+
+  const { approved } = req.body;
+  if (typeof approved !== 'boolean') {
+    errors.push('approved is required and must be a boolean');
+  }
+
+  if (errors.length) {
+    return res.status(400).json({ error: 'Validation failed', details: errors });
+  }
+  next();
+}
+
 module.exports = {
   validateRegister,
   validateLogin,
@@ -238,4 +254,5 @@ module.exports = {
   validateStaffCreate,
   validateRoleChange,
   RESIDENT_ROLE_VALUES,
+  validateApprovalChange,
 };

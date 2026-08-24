@@ -97,6 +97,14 @@ async function updateRole(id, role, client) {
   return rows[0];
 }
 
+async function updateApproval(id, approved, client) {
+  const { rows } = await client.query(
+    `UPDATE residents SET is_approved = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING ${PUBLIC_COLUMNS}`,
+    [approved, id]
+  );
+  return rows[0];
+}
+
 module.exports = {
   emailExistsInCommunity,
   create,
@@ -105,6 +113,7 @@ module.exports = {
   findByIdInCommunity,
   countAdminsInCommunity,
   updateRole,
+  updateApproval,
   updateProfile,
   verifyPassword,
 };

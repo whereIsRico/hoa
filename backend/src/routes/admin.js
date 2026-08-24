@@ -6,7 +6,7 @@ const GateStaff = require('../models/GateStaff');
 const AuditLog = require('../models/AuditLog');
 const authenticate = require('../middleware/auth');
 const requireAdmin = require('../middleware/adminAuth');
-const { validateStaffCreate, validateRoleChange } = require('../middleware/validate');
+const { validateStaffCreate, validateRoleChange, validateApprovalChange } = require('../middleware/validate');
 
 const router = express.Router();
 
@@ -95,6 +95,50 @@ router.put('/residents/:id/role', authenticate, requireAdmin, validateRoleChange
       resource_id: id,
       resource_type: 'resident',
       details: { from: resident.role, to: role },
+    });
+
+    await client.query('COMMIT');
+    res.json({ resident: updated });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    next(err);
+  } finally {
+    client.release();
+  }
+});
+
+router.put('/residents/:id/approval', authenticate, requireAdmin, validateApprovalChange, async (req, res, next) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    return res.status(400).json({ error: 'Invalid resident id' });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const resident = await Resident.findByIdInCommunity(id, req.user.community_id, client);
+    if (!resident) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Resident not found' });
+    }
+
+    const { approved } = req.body;
+    if (resident.is_approved === approved) {
+      await client.query('ROLLBACK');
+      return res.status(409).json({ error: `Resident approval is already set to ${approved}` });
+    }
+
+    const updated = await Resident.updateApproval(id, approved, client);
+
+    await AuditLog.log(client, {
+      community_id: req.user.community_id,
+      action: 'resident.approval_changed',
+      actor_id: req.user.id,
+      actor_type: 'admin',
+      resource_id: id,
+      resource_type: 'resident',
+      details: { from: resident.is_approved, to: approved },
     });
 
     await client.query('COMMIT');
