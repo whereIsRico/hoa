@@ -1,0 +1,60 @@
+name: passage
+region: nyc
+
+services:
+  - name: backend
+    github:
+      repo: whereIsRico/hoa
+      branch: main
+      deploy_on_push: true
+    source_dir: backend
+    build_command: npm install
+    run_command: npm start
+    http_port: 8080
+    instance_size_slug: basic-xxs
+    instance_count: 1
+    routes:
+      - path: /api
+        preserve_path_prefix: true
+    envs:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        type: SECRET
+        value: REPLACE_ME_IN_DASHBOARD
+      - key: DB_HOST
+        value: ${passage-db.HOSTNAME}
+      - key: DB_PORT
+        value: ${passage-db.PORT}
+      - key: DB_NAME
+        value: ${passage-db.DATABASE}
+      - key: DB_USER
+        value: ${passage-db.USERNAME}
+      - key: DB_PASSWORD
+        type: SECRET
+        value: ${passage-db.PASSWORD}
+
+static_sites:
+  - name: frontend
+    github:
+      repo: whereIsRico/hoa
+      branch: main
+      deploy_on_push: true
+    source_dir: frontend
+    build_command: npm run build
+    output_dir: dist
+    routes:
+      - path: /
+    envs:
+      - key: VITE_API_URL
+        scope: BUILD_TIME
+        value: ""
+
+databases:
+  - name: passage-db
+    engine: PG
+    production: false
+
+domains:
+  - domain: passage.whereisrico.dev
+    type: ALIAS
