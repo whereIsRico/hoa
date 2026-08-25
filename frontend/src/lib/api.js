@@ -1,4 +1,7 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+// ?? (not ||) matters here: production sets VITE_API_URL="" on purpose for
+// same-origin relative requests, and "" is falsy so || would silently
+// override it back to the local dev default.
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
 
 export class ApiError extends Error {
   constructor(status, body) {
