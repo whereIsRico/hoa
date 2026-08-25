@@ -43,6 +43,7 @@ static_sites:
     source_dir: frontend
     build_command: npm run build
     output_dir: dist
+    catchall_document: index.html
     routes:
       - path: /
     envs:
