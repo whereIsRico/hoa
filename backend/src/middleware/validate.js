@@ -315,6 +315,45 @@ function validateBillingStatus(req, res, next) {
   next();
 }
 
+const CONTACT_EDITABLE_FIELDS = ['first_name', 'last_name', 'unit_number', 'phone', 'notes'];
+
+function validateContactCreate(req, res, next) {
+  const { first_name, last_name, unit_number, phone, notes } = req.body;
+  const errors = [];
+
+  if (!first_name || typeof first_name !== 'string' || !first_name.trim()) errors.push('first_name is required');
+  if (!last_name || typeof last_name !== 'string' || !last_name.trim()) errors.push('last_name is required');
+  if (unit_number !== undefined && unit_number !== null && typeof unit_number !== 'string') errors.push('unit_number must be a string');
+  if (phone !== undefined && phone !== null && typeof phone !== 'string') errors.push('phone must be a string');
+  if (notes !== undefined && notes !== null && typeof notes !== 'string') errors.push('notes must be a string');
+
+  if (errors.length) {
+    return res.status(400).json({ error: 'Validation failed', details: errors });
+  }
+  next();
+}
+
+function validateContactUpdate(req, res, next) {
+  const errors = [];
+  const bodyKeys = Object.keys(req.body);
+
+  const unknownKeys = bodyKeys.filter((k) => !CONTACT_EDITABLE_FIELDS.includes(k));
+  if (unknownKeys.length) errors.push(`Unknown fields: ${unknownKeys.join(', ')}`);
+  if (bodyKeys.length === 0) errors.push('At least one field must be provided');
+
+  const { first_name, last_name, unit_number, phone, notes } = req.body;
+  if (first_name !== undefined && (typeof first_name !== 'string' || !first_name.trim())) errors.push('first_name must be a non-empty string');
+  if (last_name !== undefined && (typeof last_name !== 'string' || !last_name.trim())) errors.push('last_name must be a non-empty string');
+  if (unit_number !== undefined && unit_number !== null && typeof unit_number !== 'string') errors.push('unit_number must be a string');
+  if (phone !== undefined && phone !== null && typeof phone !== 'string') errors.push('phone must be a string');
+  if (notes !== undefined && notes !== null && typeof notes !== 'string') errors.push('notes must be a string');
+
+  if (errors.length) {
+    return res.status(400).json({ error: 'Validation failed', details: errors });
+  }
+  next();
+}
+
 function validatePolicyUpdate(req, res, next) {
   const editable = [
     'max_guests_per_resident_per_month', 'blacklisted_visitors',
@@ -374,4 +413,7 @@ module.exports = {
   validatePolicyUpdate,
   validateBillingStatus,
   BILLING_STATUS_VALUES,
+  validateContactCreate,
+  validateContactUpdate,
+  CONTACT_EDITABLE_FIELDS,
 };

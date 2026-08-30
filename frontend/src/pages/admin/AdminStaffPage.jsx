@@ -10,6 +10,7 @@ import { Banner } from '@/components/ui/Banner'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { GuestRowSkeleton } from '@/components/ui/Skeleton'
 import { Avatar } from '@/components/ui/Avatar'
+import { DirectoryDetailModal } from '@/components/DirectoryDetailModal'
 import { cn } from '@/lib/utils'
 
 function formatShift(start, end) {
@@ -22,6 +23,7 @@ export function AdminStaffPage() {
   const reduce = useReducedMotion()
   const [staff, setStaff] = useState(null)
   const [error, setError] = useState(null)
+  const [detail, setDetail] = useState(null)
 
   useEffect(() => {
     adminApi
@@ -59,13 +61,24 @@ export function AdminStaffPage() {
         )}
 
         {staff?.map((s, i) => (
-          <motion.div
+          <motion.button
             key={s.id}
+            type="button"
+            onClick={() =>
+              setDetail({
+                name: `${s.first_name} ${s.last_name}`,
+                phone: s.phone,
+                fields: [
+                  { label: 'Email', value: s.email },
+                  { label: 'Shift', value: formatShift(s.shift_start, s.shift_end) },
+                ],
+              })
+            }
             initial={reduce ? false : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: 'spring', stiffness: 400, damping: 26, delay: reduce ? 0 : i * 0.04 }}
             className={
-              'flex items-center justify-between gap-4 px-4 py-3.5 ' +
+              'flex w-full items-center justify-between gap-4 px-4 py-3.5 text-left transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-900 ' +
               (i > 0 ? 'border-t border-neutral-200 dark:border-neutral-800' : '')
             }
           >
@@ -82,9 +95,17 @@ export function AdminStaffPage() {
               </div>
             </div>
             <Badge tone={s.is_active ? 'success' : 'neutral'}>{s.is_active ? 'Active' : 'Inactive'}</Badge>
-          </motion.div>
+          </motion.button>
         ))}
       </div>
+
+      <DirectoryDetailModal
+        open={detail !== null}
+        onClose={() => setDetail(null)}
+        name={detail?.name}
+        phone={detail?.phone}
+        fields={detail?.fields}
+      />
     </div>
   )
 }

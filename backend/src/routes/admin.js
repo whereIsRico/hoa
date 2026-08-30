@@ -5,11 +5,13 @@ const Resident = require('../models/Resident');
 const GateStaff = require('../models/GateStaff');
 const Community = require('../models/Community');
 const Policy = require('../models/Policy');
+const ManualContact = require('../models/ManualContact');
 const AuditLog = require('../models/AuditLog');
 const authenticate = require('../middleware/auth');
 const requireAdmin = require('../middleware/adminAuth');
 const {
   validateStaffCreate, validateRoleChange, validateApprovalChange, validatePolicyUpdate,
+  validateContactCreate, validateContactUpdate,
 } = require('../middleware/validate');
 
 const router = express.Router();
@@ -221,6 +223,126 @@ router.put('/residents/:id/approval', authenticate, requireAdmin, validateApprov
 
     await client.query('COMMIT');
     res.json({ resident: updated });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    next(err);
+  } finally {
+    client.release();
+  }
+});
+
+// Manual contacts: people the HOA has a phone number for who never created
+// a Palisade account. Admin-maintained roster, same tenant-scoping and
+// audit-log discipline as every other admin-write route in this file.
+router.get('/contacts', authenticate, requireAdmin, async (req, res, next) => {
+  try {
+    const contacts = await ManualContact.listByCommunity(req.user.community_id);
+    res.json({ contacts });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/contacts', authenticate, requireAdmin, validateContactCreate, async (req, res, next) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const { first_name, last_name, unit_number, phone, notes } = req.body;
+    const contact = await ManualContact.create({
+      community_id: req.user.community_id,
+      first_name, last_name, unit_number, phone, notes,
+      created_by: req.user.id,
+    }, client);
+
+    await AuditLog.log(client, {
+      community_id: req.user.community_id,
+      action: 'contact.created',
+      actor_id: req.user.id,
+      actor_type: 'admin',
+      resource_id: contact.id,
+      resource_type: 'manual_contact',
+      details: { name: `${contact.first_name} ${contact.last_name}` },
+    });
+
+    await client.query('COMMIT');
+    res.status(201).json({ contact });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    next(err);
+  } finally {
+    client.release();
+  }
+});
+
+router.put('/contacts/:id', authenticate, requireAdmin, validateContactUpdate, async (req, res, next) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    return res.status(400).json({ error: 'Invalid contact id' });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const existing = await ManualContact.findByIdInCommunity(id, req.user.community_id, client);
+    if (!existing) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Contact not found' });
+    }
+
+    const updated = await ManualContact.update(id, req.body, client);
+
+    await AuditLog.log(client, {
+      community_id: req.user.community_id,
+      action: 'contact.updated',
+      actor_id: req.user.id,
+      actor_type: 'admin',
+      resource_id: id,
+      resource_type: 'manual_contact',
+      details: { fields: Object.keys(req.body) },
+    });
+
+    await client.query('COMMIT');
+    res.json({ contact: updated });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    next(err);
+  } finally {
+    client.release();
+  }
+});
+
+router.delete('/contacts/:id', authenticate, requireAdmin, async (req, res, next) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    return res.status(400).json({ error: 'Invalid contact id' });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const existing = await ManualContact.findByIdInCommunity(id, req.user.community_id, client);
+    if (!existing) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Contact not found' });
+    }
+
+    await ManualContact.remove(id, client);
+
+    await AuditLog.log(client, {
+      community_id: req.user.community_id,
+      action: 'contact.deleted',
+      actor_id: req.user.id,
+      actor_type: 'admin',
+      resource_id: id,
+      resource_type: 'manual_contact',
+      details: { name: `${existing.first_name} ${existing.last_name}` },
+    });
+
+    await client.query('COMMIT');
+    res.status(204).end();
   } catch (err) {
     await client.query('ROLLBACK');
     next(err);

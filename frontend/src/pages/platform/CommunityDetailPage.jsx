@@ -75,6 +75,7 @@ export function CommunityDetailPage() {
             {community.email || 'No contact email on file'}
             {community.phone && ` · ${community.phone}`}
           </p>
+          {community.address && <p className="text-sm text-neutral-500 dark:text-neutral-400">{community.address}</p>}
 
           <div className="flex items-center gap-2">
             <label htmlFor="billing-status" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">

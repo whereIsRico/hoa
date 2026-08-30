@@ -3,6 +3,7 @@ const express = require('express');
 const GateStaff = require('../models/GateStaff');
 const Resident = require('../models/Resident');
 const Community = require('../models/Community');
+const ManualContact = require('../models/ManualContact');
 const authenticateStaff = require('../middleware/staffAuth');
 
 const router = express.Router();
@@ -27,6 +28,17 @@ router.get('/residents', authenticateStaff, async (req, res, next) => {
   try {
     const residents = await Resident.listForCommunity(req.staff.community_id);
     res.json({ residents });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Read-only, same reasoning as /residents above — staff can look a manual
+// contact up and call them, never edit the roster.
+router.get('/contacts', authenticateStaff, async (req, res, next) => {
+  try {
+    const contacts = await ManualContact.listByCommunity(req.staff.community_id);
+    res.json({ contacts });
   } catch (err) {
     next(err);
   }

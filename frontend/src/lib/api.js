@@ -49,6 +49,7 @@ export const residentsApi = {
 export const staffApi = {
   me: (token) => request('/api/staff/me', { token }),
   listResidents: (token) => request('/api/staff/residents', { token }),
+  listContacts: (token) => request('/api/staff/contacts', { token }),
   getCommunity: (token) => request('/api/staff/community', { token }),
 }
 
@@ -77,6 +78,10 @@ export const adminApi = {
   getPolicy: (token) => request('/api/admin/policy', { token }),
   updatePolicy: (token, payload) => request('/api/admin/policy', { method: 'PUT', token, body: payload }),
   getCommunity: (token) => request('/api/admin/community', { token }),
+  listContacts: (token) => request('/api/admin/contacts', { token }),
+  createContact: (token, payload) => request('/api/admin/contacts', { method: 'POST', token, body: payload }),
+  updateContact: (token, id, payload) => request(`/api/admin/contacts/${id}`, { method: 'PUT', token, body: payload }),
+  deleteContact: (token, id) => request(`/api/admin/contacts/${id}`, { method: 'DELETE', token }),
 }
 
 export const platformAuthApi = {

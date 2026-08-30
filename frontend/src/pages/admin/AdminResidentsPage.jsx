@@ -1,6 +1,6 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
-import { UserCircle, MagnifyingGlass, Buildings } from '@phosphor-icons/react'
+import { UserCircle, MagnifyingGlass, Buildings, Plus, PencilSimple } from '@phosphor-icons/react'
 import { useAuth } from '@/context/AuthContext'
 import { adminApi, ApiError } from '@/lib/api'
 import { useDirectorySearch, STATUS_FILTERS } from '@/lib/useDirectorySearch'
@@ -12,6 +12,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { GuestRowSkeleton } from '@/components/ui/Skeleton'
 import { Avatar } from '@/components/ui/Avatar'
 import { DirectoryDetailModal } from '@/components/DirectoryDetailModal'
+import { ContactFormModal } from '@/components/ContactFormModal'
 import { cn } from '@/lib/utils'
 
 const SEARCH_FIELDS = ['first_name', 'last_name', 'unit_number', 'phone']
@@ -28,23 +29,36 @@ export function AdminResidentsPage() {
   const { token, resident: self } = useAuth()
   const reduce = useReducedMotion()
   const [residents, setResidents] = useState(null)
+  const [contacts, setContacts] = useState(null)
   const [community, setCommunity] = useState(null)
   const [error, setError] = useState(null)
   const [actingId, setActingId] = useState(null)
   const [detail, setDetail] = useState(null)
+  const [contactModal, setContactModal] = useState(null) // { contact: null | object } while open
+  const [deletingId, setDeletingId] = useState(null)
 
-  const { search, setSearch, statusFilter, setStatusFilter, filtered } = useDirectorySearch(residents, {
+  const people = useMemo(() => {
+    if (residents === null || contacts === null) return null
+    return [
+      ...residents.map((r) => ({ ...r, kind: 'resident' })),
+      ...contacts.map((c) => ({ ...c, kind: 'contact' })),
+    ]
+  }, [residents, contacts])
+
+  const { search, setSearch, statusFilter, setStatusFilter, filtered } = useDirectorySearch(people, {
     searchFields: SEARCH_FIELDS,
   })
 
   const load = useCallback(async () => {
     setError(null)
     try {
-      const [{ residents }, { community }] = await Promise.all([
+      const [{ residents }, { contacts }, { community }] = await Promise.all([
         adminApi.listResidents(token),
+        adminApi.listContacts(token),
         adminApi.getCommunity(token),
       ])
       setResidents(residents)
+      setContacts(contacts)
       setCommunity(community)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not load residents')
@@ -53,6 +67,7 @@ export function AdminResidentsPage() {
 
   useEffect(() => {
     setResidents(null)
+    setContacts(null)
     load()
   }, [load])
 
@@ -81,6 +96,24 @@ export function AdminResidentsPage() {
     }
   }
 
+  const onContactSaved = () => {
+    setContactModal(null)
+    load()
+  }
+
+  const confirmDeleteContact = async (contact) => {
+    setActingId(contact.id)
+    try {
+      await adminApi.deleteContact(token, contact.id)
+      setDeletingId(null)
+      await load()
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Could not delete contact')
+    } finally {
+      setActingId(null)
+    }
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -98,7 +131,7 @@ export function AdminResidentsPage() {
           />
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {STATUS_FILTERS.map((f) => (
             <button
               key={f.value}
@@ -112,10 +145,17 @@ export function AdminResidentsPage() {
         </div>
       </div>
 
+      <div className="flex items-center justify-end">
+        <Button size="sm" onClick={() => setContactModal({ contact: null })} className="inline-flex items-center gap-1.5">
+          <Plus size={15} weight="bold" />
+          Add contact
+        </Button>
+      </div>
+
       {error && <Banner tone="danger">{error}</Banner>}
 
       <div className="overflow-hidden rounded-[var(--radius-card)] border border-neutral-200 dark:border-neutral-800">
-        {residents === null && !error && (
+        {people === null && !error && (
           <>
             <GuestRowSkeleton />
             <GuestRowSkeleton />
@@ -125,7 +165,16 @@ export function AdminResidentsPage() {
         {community && (
           <button
             type="button"
-            onClick={() => setDetail({ name: community.name, phone: community.phone })}
+            onClick={() =>
+              setDetail({
+                name: community.name,
+                phone: community.phone,
+                fields: [
+                  { label: 'Email', value: community.email },
+                  { label: 'Address', value: community.address },
+                ],
+              })
+            }
             className="flex w-full items-center justify-between gap-4 bg-accent2-100 px-4 py-3.5 text-left transition-colors hover:bg-accent2-100/70 dark:bg-accent2-900/40 dark:hover:bg-accent2-900/60"
           >
             <div className="flex items-center gap-3 min-w-0">
@@ -147,68 +196,129 @@ export function AdminResidentsPage() {
           </button>
         )}
 
-        {residents?.length === 0 && <EmptyState icon={UserCircle} title="No residents found" />}
+        {people?.length === 0 && <EmptyState icon={UserCircle} title="No residents found" />}
 
-        {residents?.length > 0 && filtered.length === 0 && (
+        {people?.length > 0 && filtered.length === 0 && (
           <EmptyState icon={UserCircle} title="No residents match your search" />
         )}
 
-        {filtered.map((resident, i) => (
+        {filtered.map((person, i) => (
           <motion.div
-            key={resident.id}
+            key={`${person.kind}-${person.id}`}
             initial={reduce ? false : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: 'spring', stiffness: 400, damping: 26, delay: reduce ? 0 : i * 0.04 }}
             className={
-              'flex items-center justify-between gap-4 px-4 py-3.5 ' +
+              'flex flex-col gap-3 px-4 py-3.5 ' +
               (i > 0 || community ? 'border-t border-neutral-200 dark:border-neutral-800' : '')
             }
           >
-            <button
-              type="button"
-              onClick={() =>
-                setDetail({
-                  name: `${resident.first_name} ${resident.last_name}`,
-                  unitNumber: resident.unit_number,
-                  phone: resident.phone,
-                })
-              }
-              className="flex min-w-0 flex-1 items-center gap-3 text-left"
-            >
-              <Avatar name={`${resident.first_name} ${resident.last_name}`} size="sm" />
-              <div className="flex flex-col gap-0.5 min-w-0">
-                <p className="truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">
-                  {resident.first_name} {resident.last_name}
-                  {resident.id === self.id && <span className="text-neutral-400 dark:text-neutral-500"> (you)</span>}
-                </p>
-                <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">
-                  {resident.email}
-                  {resident.unit_number && ` · Unit ${resident.unit_number}`}
-                </p>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+              <button
+                type="button"
+                onClick={() =>
+                  person.kind === 'contact'
+                    ? setDetail({
+                        name: `${person.first_name} ${person.last_name}`,
+                        unitNumber: person.unit_number,
+                        phone: person.phone,
+                        fields: [{ label: 'Notes', value: person.notes }],
+                        badge: <Badge tone="neutral">Not on Palisade</Badge>,
+                      })
+                    : setDetail({
+                        name: `${person.first_name} ${person.last_name}`,
+                        unitNumber: person.unit_number,
+                        phone: person.phone,
+                      })
+                }
+                className="flex min-w-0 flex-1 items-center gap-3 text-left"
+              >
+                <Avatar name={`${person.first_name} ${person.last_name}`} size="sm" />
+                <div className="flex flex-col gap-0.5 min-w-0">
+                  <p className="truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                    {person.first_name} {person.last_name}
+                    {person.kind === 'resident' && person.id === self.id && (
+                      <span className="text-neutral-400 dark:text-neutral-500"> (you)</span>
+                    )}
+                  </p>
+                  <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">
+                    {person.kind === 'resident' ? person.email : person.phone || 'No phone on file'}
+                    {person.unit_number && ` · Unit ${person.unit_number}`}
+                  </p>
+                </div>
+              </button>
+              <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
+                {person.kind === 'resident' ? (
+                  <>
+                    {person.role === 'admin' && <Badge tone="approved">Admin</Badge>}
+                    <Badge tone={person.is_approved ? 'success' : 'neutral'}>
+                      {person.is_approved ? 'On Palisade' : 'Pending'}
+                    </Badge>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      loading={actingId === person.id}
+                      onClick={() => toggleApproval(person)}
+                    >
+                      {person.is_approved ? 'Revoke' : 'Approve'}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={actingId === person.id}
+                      onClick={() => toggleRole(person)}
+                    >
+                      {person.role === 'admin' ? 'Demote' : 'Make admin'}
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Badge tone="neutral">Not on Palisade</Badge>
+                    {deletingId !== person.id && (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setContactModal({ contact: person })}
+                          aria-label={`Edit ${person.first_name} ${person.last_name}`}
+                        >
+                          <PencilSimple size={15} />
+                        </Button>
+                        <Button size="sm" variant="secondary" onClick={() => setDeletingId(person.id)}>
+                          Delete
+                        </Button>
+                      </>
+                    )}
+                  </>
+                )}
               </div>
-            </button>
-            <div className="flex items-center gap-2 shrink-0">
-              {resident.role === 'admin' && <Badge tone="approved">Admin</Badge>}
-              <Badge tone={resident.is_approved ? 'success' : 'neutral'}>
-                {resident.is_approved ? 'On Palisade' : 'Pending'}
-              </Badge>
-              <Button
-                size="sm"
-                variant="secondary"
-                loading={actingId === resident.id}
-                onClick={() => toggleApproval(resident)}
-              >
-                {resident.is_approved ? 'Revoke' : 'Approve'}
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                disabled={actingId === resident.id}
-                onClick={() => toggleRole(resident)}
-              >
-                {resident.role === 'admin' ? 'Demote' : 'Make admin'}
-              </Button>
             </div>
+
+            {person.kind === 'contact' && deletingId === person.id && (
+              <div className="flex items-center justify-end gap-2 rounded-[var(--radius-field)] bg-neutral-50 dark:bg-neutral-800/50 p-2.5">
+                <p className="mr-auto text-sm text-neutral-600 dark:text-neutral-400">
+                  Delete {person.first_name} {person.last_name}?
+                </p>
+                <Button
+                  size="sm"
+                  variant="danger"
+                  loading={actingId === person.id}
+                  onClick={() => confirmDeleteContact(person)}
+                  className="shrink-0 whitespace-nowrap"
+                >
+                  Confirm delete
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={actingId === person.id}
+                  onClick={() => setDeletingId(null)}
+                  className="shrink-0 whitespace-nowrap"
+                >
+                  Cancel
+                </Button>
+              </div>
+            )}
           </motion.div>
         ))}
       </div>
@@ -219,6 +329,16 @@ export function AdminResidentsPage() {
         name={detail?.name}
         unitNumber={detail?.unitNumber}
         phone={detail?.phone}
+        fields={detail?.fields}
+        badge={detail?.badge}
+      />
+
+      <ContactFormModal
+        open={contactModal !== null}
+        onClose={() => setContactModal(null)}
+        token={token}
+        contact={contactModal?.contact}
+        onSaved={onContactSaved}
       />
     </div>
   )

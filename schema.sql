@@ -47,6 +47,23 @@ CREATE TABLE gate_staff (
   UNIQUE(community_id, email)
 );
 
+-- Manual contacts: people the HOA has a phone number for who never created a
+-- Palisade account (residents table requires email + password). The admin
+-- maintains this roster by hand — it's how Gate Staff/Admin Directory search
+-- still finds someone who isn't "on Palisade".
+CREATE TABLE manual_contacts (
+  id SERIAL PRIMARY KEY,
+  community_id INTEGER NOT NULL REFERENCES communities(id),
+  first_name VARCHAR(255) NOT NULL,
+  last_name VARCHAR(255) NOT NULL,
+  unit_number VARCHAR(50),
+  phone VARCHAR(20),
+  notes TEXT,
+  created_by INTEGER REFERENCES residents(id),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Guests
 CREATE TABLE guests (
   id SERIAL PRIMARY KEY,
@@ -129,3 +146,4 @@ CREATE INDEX idx_guests_status ON guests(status);
 CREATE INDEX idx_audit_community ON audit_logs(community_id);
 CREATE INDEX idx_subscriptions_community ON subscriptions(community_id);
 CREATE INDEX idx_subscriptions_status ON subscriptions(status);
+CREATE INDEX idx_manual_contacts_community ON manual_contacts(community_id);
