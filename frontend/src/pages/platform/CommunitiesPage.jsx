@@ -64,7 +64,7 @@ export function CommunitiesPage() {
             whileHover={reduce ? undefined : { scale: 1.015 }}
             transition={{ type: 'spring', stiffness: 400, damping: 26, delay: reduce ? 0 : i * 0.04 }}
             className={
-              'relative flex items-center justify-between gap-4 px-4 py-3.5 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/50 hover:shadow-md hover:z-10 ' +
+              'relative flex flex-col gap-3 px-4 py-3.5 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/50 hover:shadow-md hover:z-10 sm:flex-row sm:items-center sm:justify-between sm:gap-4 ' +
               (i > 0 ? 'border-t border-neutral-200 dark:border-neutral-800' : '')
             }
           >
@@ -88,7 +88,7 @@ export function CommunitiesPage() {
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
               <Badge tone="approved">{TIER_LABELS[c.subscription_tier] || c.subscription_tier}</Badge>
               <Badge tone={c.is_active ? 'success' : 'neutral'}>{c.is_active ? 'Active' : 'Inactive'}</Badge>
               <Badge tone={BILLING_STATUS_TONES[c.subscription_status] || 'neutral'}>

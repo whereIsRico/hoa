@@ -19,7 +19,7 @@ export function AdminLayout() {
         <p className="text-sm text-neutral-500 dark:text-neutral-400">Manage guests, residents, and gate staff</p>
       </div>
 
-      <nav className="flex items-center gap-1 border-b border-neutral-200 dark:border-neutral-800 pb-3">
+      <nav className="flex items-center gap-1 overflow-x-auto border-b border-neutral-200 dark:border-neutral-800 pb-3">
         <NavLink to="/dashboard/admin/guests" className={tabClass}>
           <UsersThree size={16} />
           Guests

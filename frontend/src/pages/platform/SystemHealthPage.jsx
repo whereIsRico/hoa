@@ -64,7 +64,7 @@ export function SystemHealthPage() {
             <div
               key={c.id}
               className={
-                'flex items-center justify-between gap-4 px-4 py-3.5 ' +
+                'flex flex-col items-start gap-2 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4 ' +
                 (i > 0 ? 'border-t border-neutral-200 dark:border-neutral-800' : '')
               }
             >

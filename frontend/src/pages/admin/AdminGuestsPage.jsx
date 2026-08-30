@@ -116,7 +116,7 @@ export function AdminGuestsPage() {
               (i > 0 ? 'border-t border-neutral-200 dark:border-neutral-800' : '')
             }
           >
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
               <div className="flex items-center gap-3 min-w-0">
                 <Avatar name={`${guest.first_name} ${guest.last_name}`} size="sm" />
                 <div className="flex flex-col gap-0.5 min-w-0">
@@ -130,7 +130,7 @@ export function AdminGuestsPage() {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
                 <StatusBadge status={guest.status} />
                 {guest.status === 'invited' && denyingId !== guest.id && (
                   <>
