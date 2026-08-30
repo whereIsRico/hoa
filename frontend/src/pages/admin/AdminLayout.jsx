@@ -7,7 +7,7 @@ const tabClass = ({ isActive }) =>
   cn(
     'flex items-center gap-1.5 rounded-[var(--radius-field)] px-3 py-1.5 text-sm font-medium transition-colors',
     isActive
-      ? 'bg-accent-100 text-accent-700 dark:bg-accent-900/40 dark:text-accent-300'
+      ? 'bg-accent2-100 text-accent2-700 dark:bg-accent2-900/40 dark:text-accent2-300'
       : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800'
   )
 

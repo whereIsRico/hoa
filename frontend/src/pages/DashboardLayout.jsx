@@ -2,7 +2,6 @@ import { NavLink } from 'react-router-dom'
 import { UsersThree, UserCircle, SignOut, ShieldCheck } from '@phosphor-icons/react'
 import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/Button'
-import { ThemeToggle } from '@/components/ThemeToggle'
 import { Banner } from '@/components/ui/Banner'
 import { AnimatedOutlet } from '@/components/AnimatedOutlet'
 import { cn } from '@/lib/utils'
@@ -11,7 +10,7 @@ const navLinkClass = ({ isActive }) =>
   cn(
     'flex items-center gap-1.5 rounded-[var(--radius-field)] px-3 py-1.5 text-sm font-medium transition-colors',
     isActive
-      ? 'bg-accent-100 text-accent-700 dark:bg-accent-900/40 dark:text-accent-300'
+      ? 'bg-accent2-100 text-accent2-700 dark:bg-accent2-900/40 dark:text-accent2-300'
       : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800'
   )
 
@@ -23,7 +22,7 @@ export function DashboardLayout() {
       <header className="sticky top-0 z-10 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-0/90 dark:bg-neutral-900/90 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-4">
           <span className="font-display text-base font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
-            Passage
+            Palisade
           </span>
           <nav className="flex items-center gap-1">
             <NavLink to="/dashboard/guests" className={navLinkClass}>
@@ -42,7 +41,6 @@ export function DashboardLayout() {
             )}
           </nav>
           <div className="flex items-center gap-1.5">
-            <ThemeToggle />
             <Button variant="ghost" size="sm" onClick={logout} aria-label="Sign out">
               <SignOut size={17} />
             </Button>

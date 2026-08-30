@@ -26,7 +26,7 @@ app.use((req, res, next) => {
 
 // Routes
 app.get('/', (req, res) => {
-  res.json({ message: 'Passage API is running' });
+  res.json({ message: 'Palisade API is running' });
 });
 
 app.use('/api/auth', authRoutes);

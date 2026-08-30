@@ -1,62 +1,88 @@
 @import "tailwindcss";
-@import "@fontsource-variable/geist";
+@import "@fontsource-variable/fredoka";
 @import "@fontsource-variable/geist-mono";
-@import "@fontsource-variable/sora";
+@import "@fontsource-variable/nunito-sans";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Nunito Sans Variable", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono Variable", ui-monospace, monospace;
-  /* Headings only — more character than Geist alone, still sans, still calm. */
-  --font-display: "Sora Variable", "Geist Variable", ui-sans-serif, sans-serif;
+  /* Headings only — rounded and characterful, carries the "Playful × Brand"
+     read. Still falls back to the body sans, never to a system default. */
+  --font-display: "Fredoka Variable", "Nunito Sans Variable", ui-sans-serif, sans-serif;
 
-  /* Warm sand/stone neutral scale (hue ~75) — off-black/off-white, never pure,
-     and never cold blue-gray. This is the base of the "coastal" read. */
-  --color-neutral-0: oklch(99% 0.002 80);
-  --color-neutral-50: oklch(97.3% 0.005 80);
-  --color-neutral-100: oklch(94.5% 0.008 75);
-  --color-neutral-200: oklch(89% 0.012 75);
-  --color-neutral-300: oklch(80% 0.015 75);
-  --color-neutral-400: oklch(64% 0.018 75);
-  --color-neutral-500: oklch(52% 0.015 75);
-  --color-neutral-600: oklch(42% 0.014 75);
-  --color-neutral-700: oklch(32% 0.012 75);
-  --color-neutral-800: oklch(23% 0.010 75);
-  --color-neutral-900: oklch(16% 0.008 75);
-  --color-neutral-950: oklch(11% 0.006 75);
+  /* Warm cream neutral scale — surfaces and borders sit on a warm paper hue
+     (~80), text sits on a cooler ink-slate hue (~235) that matches the
+     accent-2 navy. The scale drifts gradually between the two rather than
+     jumping, so mid-scale borders/placeholders read as quiet warm-grays. */
+  --color-neutral-0: oklch(100% 0 90);
+  --color-neutral-50: oklch(98.13% 0.0175 81.33);
+  --color-neutral-100: oklch(95.5% 0.02 80);
+  --color-neutral-200: oklch(92.34% 0.0325 80.99);
+  --color-neutral-300: oklch(85% 0.01 100);
+  --color-neutral-400: oklch(73% 0.01 180);
+  --color-neutral-500: oklch(62.73% 0.0212 230.91);
+  --color-neutral-600: oklch(51% 0.025 234);
+  --color-neutral-700: oklch(40% 0.028 237);
+  --color-neutral-800: oklch(31% 0.028 239);
+  --color-neutral-900: oklch(25.24% 0.027 240.26);
+  --color-neutral-950: oklch(18% 0.024 240);
 
-  /* Brand accent: deep turquoise (Nassau ocean), not corporate blue.
-     Used for primary actions/links/focus rings — the one accent color. */
-  --color-accent-100: oklch(94% 0.03 195);
-  --color-accent-300: oklch(80% 0.075 195);
-  --color-accent-500: oklch(58% 0.10 195);
-  --color-accent-600: oklch(48% 0.095 195);
-  --color-accent-700: oklch(40% 0.085 195);
-  --color-accent-900: oklch(26% 0.06 195);
+  /* Brand accent: warm amber, not the old turquoise. Used for primary
+     actions/links/focus rings. Because it's light, its own text needs the
+     ink-navy contrast token below, never white. */
+  --color-accent-100: oklch(95% 0.035 65);
+  --color-accent-300: oklch(85% 0.09 65);
+  --color-accent-500: oklch(70.82% 0.1508 64.86);
+  --color-accent-600: oklch(66% 0.152 64);
+  --color-accent-700: oklch(63% 0.152 63);
+  --color-accent-900: oklch(28% 0.07 55);
+  /* Text/icon color for content sitting on a solid accent fill (accent-500/
+     -600/-700) — white fails contrast against amber, ink-navy passes. */
+  --color-accent-contrast: oklch(23.50% 0.0304 239.87);
+
+  /* Accent-2: ink navy — a second, structural accent axis (not a rename of
+     coral). Used for active-nav-state chrome and avatar backgrounds, where
+     the design wants "ink," not "amber." */
+  --color-accent2-100: oklch(96% 0.012 240);
+  --color-accent2-300: oklch(82% 0.03 240);
+  --color-accent2-500: oklch(23.50% 0.0304 239.87);
+  --color-accent2-600: oklch(19% 0.028 240);
+  --color-accent2-700: oklch(14% 0.024 240);
+  --color-accent2-900: oklch(12% 0.02 240);
+  /* Text/icon color for content sitting on a solid accent-2 fill. */
+  --color-accent2-contrast: oklch(95.85% 0.0098 87.47);
 
   /* Coral — a second, deliberately distinct semantic color for warnings/
      attention states (e.g. pending-approval banners). Not the brand accent;
-     not the danger red. Warm, but not corporate. */
+     not accent-2; not the danger red. Warm, but not corporate. Contrast
+     against the new cream background was re-checked and still holds, so
+     these values are unchanged from the old palette. */
   --color-coral-100: oklch(94% 0.035 38);
   --color-coral-300: oklch(82% 0.09 38);
   --color-coral-500: oklch(68% 0.15 38);
   --color-coral-600: oklch(60% 0.16 38);
   --color-coral-700: oklch(48% 0.14 38);
 
-  /* Semantic status colors for guest badges — distinct from the brand accent */
+  /* Semantic status colors for guest badges — distinct from the brand accent.
+     approved/success/danger text tones are their own oklch values (not
+     direct references to accent-600/etc.) because the lighter amber-based
+     scale can't hit AA text contrast against its own -100 tint at the step
+     used elsewhere for buttons; picked here to clear 4.5:1 against their
+     paired -bg tint. */
   --color-status-neutral: var(--color-neutral-500);
-  --color-status-approved: var(--color-accent-600);
+  --color-status-approved: oklch(42% 0.11 50);
   --color-status-approved-bg: var(--color-accent-100);
   --color-status-warning: var(--color-coral-700);
   --color-status-warning-bg: var(--color-coral-100);
-  --color-status-success: oklch(58% 0.13 145);
+  --color-status-success: oklch(38% 0.13 145);
   --color-status-success-bg: oklch(95% 0.04 145);
-  --color-status-danger: oklch(56% 0.19 22);
+  --color-status-danger: oklch(50% 0.19 22);
   --color-status-danger-bg: oklch(96% 0.03 22);
 
-  --radius-field: 8px;
-  --radius-card: 12px;
+  --radius-field: 14px;
+  --radius-card: 22px;
 }
 
 @layer base {

@@ -4,12 +4,16 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Passage</title>
+    <title>Palisade</title>
     <script>
       (function () {
+        // Playful x Brand ships light-only for now (no dark tokens designed yet)
+        // and the manual toggle is hidden, so no longer honor OS dark-mode
+        // preference here — otherwise anyone on a dark-mode OS would land on a
+        // half-mismatched theme with no way to switch back. An explicit stored
+        // preference (from before this change) still wins if present.
         var stored = localStorage.getItem('passage.theme')
-        var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches
-        if (dark) document.documentElement.classList.add('dark')
+        if (stored === 'dark') document.documentElement.classList.add('dark')
       })()
     </script>
   </head>

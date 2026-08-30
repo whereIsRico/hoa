@@ -12,7 +12,7 @@ export function AuthLayout({ title, subtitle, children, footer }) {
         transition={{ type: 'spring', stiffness: 300, damping: 24 }}
       >
         <div className="mb-8 text-center">
-          <p className="font-display text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">Passage</p>
+          <p className="font-display text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">Palisade</p>
           <h1 className="mt-3 text-xl font-semibold text-neutral-900 dark:text-neutral-100">{title}</h1>
           {subtitle && <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{subtitle}</p>}
         </div>

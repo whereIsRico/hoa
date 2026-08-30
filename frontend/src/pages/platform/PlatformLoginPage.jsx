@@ -31,7 +31,7 @@ export function PlatformLoginPage() {
   }
 
   return (
-    <AuthLayout title="Platform sign in" subtitle="Threshold internal — onboard and manage communities">
+    <AuthLayout title="Platform sign in" subtitle="Argus internal — onboard and manage communities">
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
         {error && <Banner tone="danger">{error}</Banner>}
 
