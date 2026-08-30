@@ -3,8 +3,9 @@ import { SignOut, Buildings, AddressBook, Pulse } from '@phosphor-icons/react'
 import { usePlatformAuth } from '@/context/PlatformAuthContext'
 import { Button } from '@/components/ui/Button'
 import { AnimatedOutlet } from '@/components/AnimatedOutlet'
+import { ThemeToggle } from '@/components/ThemeToggle'
+import { ArgusMark } from '@/components/ArgusMark'
 import { cn } from '@/lib/utils'
-import argusMark from '@/assets/argus-mark.svg'
 
 const tabClass = ({ isActive }) =>
   cn(
@@ -23,7 +24,7 @@ export function PlatformDashboardLayout() {
         <div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-4">
           <div className="flex items-baseline gap-2">
             <span className="flex items-center gap-2">
-              <img src={argusMark} alt="" className="h-6 w-auto" />
+              <ArgusMark className="h-6 w-auto" />
               <span className="font-display text-base font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
                 Palisade
               </span>
@@ -36,6 +37,7 @@ export function PlatformDashboardLayout() {
                 {platformAdmin.first_name} {platformAdmin.last_name}
               </span>
             )}
+            <ThemeToggle />
             <Button variant="ghost" size="sm" onClick={logout} aria-label="Sign out">
               <SignOut size={17} />
             </Button>

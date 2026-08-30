@@ -1,0 +1,18 @@
+// Inline (not <img>) so the ink-navy shape can respond to dark mode via a
+// Tailwind class — the navy path is nearly invisible against a dark header,
+// leaving just the amber dot floating, so it swaps to a light fill under
+// `.dark`. Path data from brand/argus-a-lens.pdf via frontend/src/assets/argus-mark.svg.
+export function ArgusMark({ className }) {
+  return (
+    <svg viewBox="90.51 -26.32 430.97 567.35" role="img" aria-label="Argus" className={className}>
+      <path
+        className="fill-[#10202B] dark:fill-neutral-50"
+        d="M 306 208.085938 L 427.761719 510.632812 L 498.398438 482.167969 L 306 4.074219 L 113.601562 482.167969 L 184.238281 510.632812 Z M 306 208.085938 "
+      />
+      <path
+        fill="#E08A1E"
+        d="M 348.410156 372.640625 C 348.410156 396.0625 329.421875 415.050781 306 415.050781 C 282.578125 415.050781 263.589844 396.0625 263.589844 372.640625 C 263.589844 349.214844 282.578125 330.226562 306 330.226562 C 329.421875 330.226562 348.410156 349.214844 348.410156 372.640625 Z M 348.410156 372.640625 "
+      />
+    </svg>
+  )
+}
