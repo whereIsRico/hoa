@@ -59,3 +59,5 @@ databases:
 domains:
   - domain: passage.whereisrico.dev
     type: ALIAS
+  - domain: palisade.whereisrico.dev
+    type: ALIAS
