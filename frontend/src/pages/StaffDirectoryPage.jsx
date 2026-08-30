@@ -1,10 +1,9 @@
 import { useEffect, useState, useCallback } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { UserCircle, MagnifyingGlass, Buildings } from '@phosphor-icons/react'
-import { useAuth } from '@/context/AuthContext'
-import { adminApi, ApiError } from '@/lib/api'
+import { useStaffAuth } from '@/context/StaffAuthContext'
+import { staffApi, ApiError } from '@/lib/api'
 import { useDirectorySearch, STATUS_FILTERS } from '@/lib/useDirectorySearch'
-import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Field'
 import { Badge } from '@/components/ui/Badge'
 import { Banner } from '@/components/ui/Banner'
@@ -24,13 +23,16 @@ const chipClass = (active) =>
       : 'border-neutral-300 text-neutral-600 hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800'
   )
 
-export function AdminResidentsPage() {
-  const { token, resident: self } = useAuth()
+// Read-only mirror of AdminResidentsPage's directory: search, filter, pinned
+// office row, click-through detail — but no approve/promote actions. Gate
+// staff already indirectly sees resident name/unit via the guest-list join,
+// so this introduces no new privacy boundary.
+export function StaffDirectoryPage() {
+  const { token } = useStaffAuth()
   const reduce = useReducedMotion()
   const [residents, setResidents] = useState(null)
   const [community, setCommunity] = useState(null)
   const [error, setError] = useState(null)
-  const [actingId, setActingId] = useState(null)
   const [detail, setDetail] = useState(null)
 
   const { search, setSearch, statusFilter, setStatusFilter, filtered } = useDirectorySearch(residents, {
@@ -41,13 +43,13 @@ export function AdminResidentsPage() {
     setError(null)
     try {
       const [{ residents }, { community }] = await Promise.all([
-        adminApi.listResidents(token),
-        adminApi.getCommunity(token),
+        staffApi.listResidents(token),
+        staffApi.getCommunity(token),
       ])
       setResidents(residents)
       setCommunity(community)
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Could not load residents')
+      setError(err instanceof ApiError ? err.message : 'Could not load directory')
     }
   }, [token])
 
@@ -56,33 +58,13 @@ export function AdminResidentsPage() {
     load()
   }, [load])
 
-  const toggleApproval = async (resident) => {
-    setActingId(resident.id)
-    try {
-      await adminApi.updateResidentApproval(token, resident.id, !resident.is_approved)
-      await load()
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Could not update approval')
-    } finally {
-      setActingId(null)
-    }
-  }
-
-  const toggleRole = async (resident) => {
-    const nextRole = resident.role === 'admin' ? 'resident' : 'admin'
-    setActingId(resident.id)
-    try {
-      await adminApi.updateResidentRole(token, resident.id, nextRole)
-      await load()
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Could not update role')
-    } finally {
-      setActingId(null)
-    }
-  }
-
   return (
     <div className="flex flex-col gap-6">
+      <div>
+        <h1 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Directory</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">Look up residents and the HOA office</p>
+      </div>
+
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative w-full sm:max-w-xs">
           <MagnifyingGlass
@@ -154,62 +136,39 @@ export function AdminResidentsPage() {
         )}
 
         {filtered.map((resident, i) => (
-          <motion.div
+          <motion.button
             key={resident.id}
+            type="button"
+            onClick={() =>
+              setDetail({
+                name: `${resident.first_name} ${resident.last_name}`,
+                unitNumber: resident.unit_number,
+                phone: resident.phone,
+              })
+            }
             initial={reduce ? false : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: 'spring', stiffness: 400, damping: 26, delay: reduce ? 0 : i * 0.04 }}
             className={
-              'flex items-center justify-between gap-4 px-4 py-3.5 ' +
+              'flex w-full items-center justify-between gap-4 px-4 py-3.5 text-left transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-900 ' +
               (i > 0 || community ? 'border-t border-neutral-200 dark:border-neutral-800' : '')
             }
           >
-            <button
-              type="button"
-              onClick={() =>
-                setDetail({
-                  name: `${resident.first_name} ${resident.last_name}`,
-                  unitNumber: resident.unit_number,
-                  phone: resident.phone,
-                })
-              }
-              className="flex min-w-0 flex-1 items-center gap-3 text-left"
-            >
+            <div className="flex items-center gap-3 min-w-0">
               <Avatar name={`${resident.first_name} ${resident.last_name}`} size="sm" />
               <div className="flex flex-col gap-0.5 min-w-0">
                 <p className="truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">
                   {resident.first_name} {resident.last_name}
-                  {resident.id === self.id && <span className="text-neutral-400 dark:text-neutral-500"> (you)</span>}
                 </p>
                 <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">
-                  {resident.email}
-                  {resident.unit_number && ` · Unit ${resident.unit_number}`}
+                  {resident.unit_number && `Unit ${resident.unit_number}`}
                 </p>
               </div>
-            </button>
-            <div className="flex items-center gap-2 shrink-0">
-              {resident.role === 'admin' && <Badge tone="approved">Admin</Badge>}
-              <Badge tone={resident.is_approved ? 'success' : 'neutral'}>
-                {resident.is_approved ? 'On Palisade' : 'Pending'}
-              </Badge>
-              <Button
-                size="sm"
-                variant="secondary"
-                loading={actingId === resident.id}
-                onClick={() => toggleApproval(resident)}
-              >
-                {resident.is_approved ? 'Revoke' : 'Approve'}
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                disabled={actingId === resident.id}
-                onClick={() => toggleRole(resident)}
-              >
-                {resident.role === 'admin' ? 'Demote' : 'Make admin'}
-              </Button>
             </div>
-          </motion.div>
+            <Badge tone={resident.is_approved ? 'success' : 'neutral'}>
+              {resident.is_approved ? 'On Palisade' : 'Pending'}
+            </Badge>
+          </motion.button>
         ))}
       </div>
 

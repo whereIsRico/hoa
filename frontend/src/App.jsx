@@ -18,6 +18,7 @@ import { ProfilePage } from '@/pages/ProfilePage'
 import { StaffLoginPage } from '@/pages/StaffLoginPage'
 import { StaffDashboardLayout } from '@/pages/StaffDashboardLayout'
 import { StaffGuestsPage } from '@/pages/StaffGuestsPage'
+import { StaffDirectoryPage } from '@/pages/StaffDirectoryPage'
 import { AdminLayout } from '@/pages/admin/AdminLayout'
 import { AdminGuestsPage } from '@/pages/admin/AdminGuestsPage'
 import { AdminResidentsPage } from '@/pages/admin/AdminResidentsPage'
@@ -67,7 +68,9 @@ export default function App() {
 
             <Route element={<StaffProtectedRoute />}>
               <Route path="/staff/dashboard" element={<StaffDashboardLayout />}>
-                <Route index element={<StaffGuestsPage />} />
+                <Route index element={<Navigate to="guests" replace />} />
+                <Route path="guests" element={<StaffGuestsPage />} />
+                <Route path="directory" element={<StaffDirectoryPage />} />
               </Route>
             </Route>
 

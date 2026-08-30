@@ -48,6 +48,8 @@ export const residentsApi = {
 
 export const staffApi = {
   me: (token) => request('/api/staff/me', { token }),
+  listResidents: (token) => request('/api/staff/residents', { token }),
+  getCommunity: (token) => request('/api/staff/community', { token }),
 }
 
 export const guestsApi = {
@@ -74,6 +76,7 @@ export const adminApi = {
   createStaff: (token, payload) => request('/api/admin/staff', { method: 'POST', token, body: payload }),
   getPolicy: (token) => request('/api/admin/policy', { token }),
   updatePolicy: (token, payload) => request('/api/admin/policy', { method: 'PUT', token, body: payload }),
+  getCommunity: (token) => request('/api/admin/community', { token }),
 }
 
 export const platformAuthApi = {

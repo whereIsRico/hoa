@@ -3,6 +3,7 @@ const express = require('express');
 const pool = require('../config/db');
 const Resident = require('../models/Resident');
 const GateStaff = require('../models/GateStaff');
+const Community = require('../models/Community');
 const Policy = require('../models/Policy');
 const AuditLog = require('../models/AuditLog');
 const authenticate = require('../middleware/auth');
@@ -61,6 +62,18 @@ router.get('/residents', authenticate, requireAdmin, async (req, res, next) => {
       approved: approved === undefined ? undefined : approved === 'true',
     });
     res.json({ residents });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/community', authenticate, requireAdmin, async (req, res, next) => {
+  try {
+    const community = await Community.findById(req.user.community_id);
+    if (!community) {
+      return res.status(404).json({ error: 'Community not found' });
+    }
+    res.json({ community });
   } catch (err) {
     next(err);
   }
