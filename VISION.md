@@ -34,29 +34,66 @@ Target: 10-15 customers = $3,600-4,500/month
 2. Build detailed requirements
 3. Start architecture/database design
 
-## Brand / UI Redesign Exploration (2026-08-30)
+## Brand / UI Redesign — LIVE (2026-08-30)
 As of this date, the product is renamed **Palisade** (company **Argus**),
 replacing the prior Passage/Threshold naming used since initial build.
 Paired with an existing "Argus" logo mark already on hand (ink navy
-`#10202B` mark, amber `#E08A1E` accent dot — see `argus-a-lens.pdf` /
-`argus-word-integrated.pdf` at repo root). This is a naming/brand decision
-only — the live code and infrastructure (domain, DO app name, DB, GitHub
-repo) still use the old Passage naming and have not been migrated; see the
-naming note in CLAUDE.md.
+`#10202B` mark, amber `#E08A1E` accent dot — see `brand/argus-a-lens.pdf` /
+`brand/argus-word-integrated.pdf`).
 
-Six visual directions were compared on the resident Guests screen (Bold &
-Vibrant, Premium & Dark, Playful & Warm, Brand-True, Playful × Brand, and
-Playful × Brand — Light). "Playful × Brand — Light" (Argus navy/amber colors
-through Playful & Warm's rounded shapes, on a cream ground) was taken
-furthest, with full screens mocked for all four actor types — including a
-searchable resident directory with live search + status filter chips
-(Gate/Admin), a manual billing-status tag (Trial/Paying/Overdue) on the
-platform admin's Communities view, and a new "System Health" screen (recent
-errors, per-community last-active) for the platform admin dashboard —
-deliberately favored over a revenue dashboard, since there's no Stripe
-integration yet to back real billing analytics.
-
-This work lives entirely in a Claude Artifact
+The direction explored in a Claude Artifact
 (https://claude.ai/code/artifact/4a757c0a-7c37-45ed-bf14-c8a3114931fe) —
-**no code in `frontend/` has been changed.** Next step, if this direction is
-approved, is porting the chosen style into the real component library.
+"Playful × Brand — Light" (Argus navy/amber colors through Playful & Warm's
+rounded shapes, on a cream ground) — has been **implemented in the real
+codebase and deployed to production**, not just mocked:
+- New design tokens (cream/ink-navy/amber palette, Fredoka + Nunito Sans
+  fonts, 22px/14px radii, blob avatars) across all four portals. Dark mode
+  is disabled for now (light-only; no dark tokens exist for this palette
+  yet — see "Next Up" below).
+- A searchable resident directory (live search + On Palisade/Pending
+  filter chips) for Gate Staff and Admin, with click-through to a call
+  button on both residents and the HOA office contact.
+- A platform-admin Directory (filterable by Starter/Professional/
+  Enterprise), a real billing-status tag (Paying/Trial/Overdue, backed by
+  the previously-unused `subscriptions` table), and a System Health screen
+  showing per-community "last activity" staleness derived from
+  `audit_logs`.
+- The full **domain cutover** is also done: production now runs solely at
+  `palisade.whereisrico.dev` (old `passage.whereisrico.dev` retired, DNS +
+  DO app spec both updated). Code-level "Passage"/"Threshold" strings were
+  also renamed; live infra identifiers that weren't (GitHub repo name,
+  database name `passage-db`) are deliberately deferred — see
+  `RENAME_MIGRATION_PLAN.md`.
+
+Full implementation plan, phase-by-phase file list, and the product
+decisions made along the way: `REDESIGN_IMPLEMENTATION_PLAN.md`.
+
+## Next Up
+Roughly in priority order:
+1. **Visually verify the live redesign in a real browser** — this session's
+   work was checked via build/lint and API calls only, never actually
+   looked at in a browser. Test accounts exist for all 4 roles at Lyford
+   Cay (see `CLAUDE.md`) specifically for this.
+2. **Production-tier database** (backups + HA) before onboarding a real
+   paying HOA — the current dev-tier DB has zero backups, which is a real
+   risk given how much of this session's own work depended on hand-run
+   console scripts against it.
+3. **Real ownership + mail routing for `argus.dev`** — the platform admin
+   login is `rico@argus.dev`, but nobody owns/controls that domain yet, so
+   there's no actual mailbox behind it (fine for now since the app sends
+   no emails, but blocks any future password-reset flow).
+4. **Dark mode tokens** for Playful × Brand — currently light-only by
+   deliberate choice, not because dark mode was ruled out.
+5. **GitHub repo rename + database rename** — both still deferred per
+   `RENAME_MIGRATION_PLAN.md`'s own recommendation; revisit together, in
+   one sitting, once there's an actual external reason (e.g. going public).
+6. **Stripe integration** so the billing-status tag reflects real payments
+   instead of an admin manually toggling Paying/Trial/Overdue.
+7. **Schema migration tooling** — every schema change this session (and
+   before) required a hand-run script over `doctl apps console`; worth a
+   real migration tool before the schema grows further.
+8. **System Health error-log telemetry** — deliberately deferred; DO's own
+   stdout/stderr capture covers this in the meantime.
+9. **Resident self-registration + admin-approval flow on prod** — still
+   only tested locally, not end-to-end on the live app (older outstanding
+   item, still open).
