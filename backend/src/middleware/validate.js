@@ -297,6 +297,24 @@ function validateCommunityOnboard(req, res, next) {
   next();
 }
 
+const BILLING_STATUS_VALUES = ['active', 'trial', 'overdue'];
+
+function validateBillingStatus(req, res, next) {
+  const errors = [];
+  const unknownKeys = Object.keys(req.body).filter((k) => k !== 'status');
+  if (unknownKeys.length) errors.push(`Unknown fields: ${unknownKeys.join(', ')}`);
+
+  const { status } = req.body;
+  if (!status || !BILLING_STATUS_VALUES.includes(status)) {
+    errors.push(`status is required and must be one of: ${BILLING_STATUS_VALUES.join(', ')}`);
+  }
+
+  if (errors.length) {
+    return res.status(400).json({ error: 'Validation failed', details: errors });
+  }
+  next();
+}
+
 function validatePolicyUpdate(req, res, next) {
   const editable = [
     'max_guests_per_resident_per_month', 'blacklisted_visitors',
@@ -354,4 +372,6 @@ module.exports = {
   validateCommunityOnboard,
   SUBSCRIPTION_TIERS,
   validatePolicyUpdate,
+  validateBillingStatus,
+  BILLING_STATUS_VALUES,
 };

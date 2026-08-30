@@ -30,6 +30,8 @@ import { PlatformDashboardLayout } from '@/pages/platform/PlatformDashboardLayou
 import { CommunitiesPage } from '@/pages/platform/CommunitiesPage'
 import { NewCommunityPage } from '@/pages/platform/NewCommunityPage'
 import { CommunityDetailPage } from '@/pages/platform/CommunityDetailPage'
+import { DirectoryPage } from '@/pages/platform/DirectoryPage'
+import { SystemHealthPage } from '@/pages/platform/SystemHealthPage'
 
 export default function App() {
   return (
@@ -84,6 +86,8 @@ export default function App() {
                 <Route path="communities" element={<CommunitiesPage />} />
                 <Route path="communities/new" element={<NewCommunityPage />} />
                 <Route path="communities/:id" element={<CommunityDetailPage />} />
+                <Route path="directory" element={<DirectoryPage />} />
+                <Route path="system-health" element={<SystemHealthPage />} />
               </Route>
             </Route>
 

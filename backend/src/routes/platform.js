@@ -5,9 +5,10 @@ const Community = require('../models/Community');
 const Resident = require('../models/Resident');
 const PlatformAdmin = require('../models/PlatformAdmin');
 const Policy = require('../models/Policy');
+const Subscription = require('../models/Subscription');
 const AuditLog = require('../models/AuditLog');
 const authenticatePlatform = require('../middleware/platformAuth');
-const { validateCommunityOnboard } = require('../middleware/validate');
+const { validateCommunityOnboard, validateBillingStatus } = require('../middleware/validate');
 
 const router = express.Router();
 
@@ -62,7 +63,7 @@ router.post('/communities', authenticatePlatform, validateCommunityOnboard, asyn
 
     const {
       community_name, community_email, community_phone, community_address, subscription_tier,
-      admin_first_name, admin_last_name, admin_email, admin_password,
+      monthly_fee, admin_first_name, admin_last_name, admin_email, admin_password,
     } = req.body;
 
     const community = await Community.create({
@@ -74,6 +75,12 @@ router.post('/communities', authenticatePlatform, validateCommunityOnboard, asyn
     }, client);
 
     const policy = await Policy.createDefault(community.id, client);
+
+    // Every onboarded community gets a billing row from day one — status
+    // starts 'active' (the schema's own default), so there's nothing left
+    // "unset" going forward. Only communities onboarded before this existed
+    // (i.e. the one pre-existing prod community) need a manual backfill.
+    await Subscription.createDefault(community.id, community.subscription_tier, monthly_fee, client);
 
     const admin = await Resident.create({
       community_id: community.id,
@@ -104,6 +111,89 @@ router.post('/communities', authenticatePlatform, validateCommunityOnboard, asyn
     next(err);
   } finally {
     client.release();
+  }
+});
+
+// Changes a community's billing status (subscriptions.status). Backfills a
+// subscriptions row on the fly for a community that predates this table
+// (there's exactly one in prod today) rather than requiring a separate
+// migration step before this endpoint works for it.
+router.put('/communities/:id/billing-status', authenticatePlatform, validateBillingStatus, async (req, res, next) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    return res.status(400).json({ error: 'Invalid community id' });
+  }
+
+  const { status } = req.body;
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const community = await Community.findById(id);
+    if (!community) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Community not found' });
+    }
+
+    const existing = await Subscription.findByCommunity(id);
+    const before = existing ? existing.status : null;
+
+    if (before === status) {
+      await client.query('ROLLBACK');
+      return res.status(409).json({ error: `Billing status is already set to ${status}` });
+    }
+
+    let subscription;
+    if (existing) {
+      subscription = await Subscription.updateStatus(id, status, client);
+    } else {
+      subscription = await Subscription.createDefault(id, community.subscription_tier, community.monthly_fee, client);
+      if (status !== 'active') {
+        subscription = await Subscription.updateStatus(id, status, client);
+      }
+    }
+
+    await AuditLog.log(client, {
+      community_id: id,
+      action: 'billing.status_changed',
+      actor_id: req.platformAdmin.id,
+      actor_type: 'platform_admin',
+      resource_id: id,
+      resource_type: 'subscription',
+      details: { from: before, to: status },
+    });
+
+    await client.query('COMMIT');
+    res.json({ subscription });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    next(err);
+  } finally {
+    client.release();
+  }
+});
+
+// Merges the community list with each community's last recorded audit-log
+// activity — the "quiet since when" signal for the System Health page.
+router.get('/system-health', authenticatePlatform, async (req, res, next) => {
+  try {
+    const [communities, activity] = await Promise.all([
+      Community.listWithCounts(),
+      AuditLog.lastActivityByCommunity(),
+    ]);
+
+    const lastActivityByCommunity = new Map(
+      activity.map((row) => [row.community_id, row.last_activity])
+    );
+
+    const health = communities.map((c) => ({
+      ...c,
+      last_activity: lastActivityByCommunity.get(c.id) || null,
+    }));
+
+    res.json({ communities: health });
+  } catch (err) {
+    next(err);
   }
 });
 

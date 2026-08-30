@@ -22,4 +22,16 @@ async function listForCommunity(communityId, { limit = 100 } = {}) {
   return rows;
 }
 
-module.exports = { log, listForCommunity };
+// System Health's staleness signal: most recent recorded action per
+// community. This reflects guest/admin lifecycle actions written to this
+// table, not raw HTTP traffic — a quiet community isn't necessarily an
+// unhealthy one, just one with nothing logged recently.
+async function lastActivityByCommunity() {
+  const { rows } = await pool.query(
+    `SELECT community_id, MAX(created_at) AS last_activity
+     FROM audit_logs GROUP BY community_id`
+  );
+  return rows;
+}
+
+module.exports = { log, listForCommunity, lastActivityByCommunity };

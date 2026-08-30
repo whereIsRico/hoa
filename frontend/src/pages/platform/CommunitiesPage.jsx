@@ -10,9 +10,9 @@ import { Banner } from '@/components/ui/Banner'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { GuestRowSkeleton } from '@/components/ui/Skeleton'
 import { Avatar } from '@/components/ui/Avatar'
+import { TIER_LABELS, BILLING_STATUS_LABELS, BILLING_STATUS_TONES } from '@/lib/constants'
 import { cn } from '@/lib/utils'
 
-const TIER_LABELS = { starter: 'Starter', professional: 'Professional', enterprise: 'Enterprise' }
 const MotionLink = motion.create(Link)
 
 export function CommunitiesPage() {
@@ -91,6 +91,9 @@ export function CommunitiesPage() {
             <div className="flex items-center gap-2 shrink-0">
               <Badge tone="approved">{TIER_LABELS[c.subscription_tier] || c.subscription_tier}</Badge>
               <Badge tone={c.is_active ? 'success' : 'neutral'}>{c.is_active ? 'Active' : 'Inactive'}</Badge>
+              <Badge tone={BILLING_STATUS_TONES[c.subscription_status] || 'neutral'}>
+                {BILLING_STATUS_LABELS[c.subscription_status] || 'Not set'}
+              </Badge>
             </div>
           </MotionLink>
         ))}

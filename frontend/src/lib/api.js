@@ -88,4 +88,7 @@ export const platformApi = {
   listCommunities: (token) => request('/api/platform/communities', { token }),
   onboardCommunity: (token, payload) => request('/api/platform/communities', { method: 'POST', token, body: payload }),
   communityAuditLogs: (token, id) => request(`/api/platform/communities/${id}/audit-logs`, { token }),
+  updateBillingStatus: (token, id, status) =>
+    request(`/api/platform/communities/${id}/billing-status`, { method: 'PUT', token, body: { status } }),
+  getSystemHealth: (token) => request('/api/platform/system-health', { token }),
 }
