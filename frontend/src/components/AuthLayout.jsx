@@ -1,4 +1,5 @@
 import { motion, useReducedMotion } from 'motion/react'
+import argusMark from '@/assets/argus-mark.svg'
 
 export function AuthLayout({ title, subtitle, children, footer }) {
   const reduce = useReducedMotion()
@@ -11,7 +12,8 @@ export function AuthLayout({ title, subtitle, children, footer }) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 24 }}
       >
-        <div className="mb-8 text-center">
+        <div className="mb-8 flex flex-col items-center text-center">
+          <img src={argusMark} alt="" className="mb-3 h-11 w-auto" />
           <p className="font-display text-lg font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">Palisade</p>
           <h1 className="mt-3 text-xl font-semibold text-neutral-900 dark:text-neutral-100">{title}</h1>
           {subtitle && <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{subtitle}</p>}

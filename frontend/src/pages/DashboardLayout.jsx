@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { Banner } from '@/components/ui/Banner'
 import { AnimatedOutlet } from '@/components/AnimatedOutlet'
 import { cn } from '@/lib/utils'
+import argusMark from '@/assets/argus-mark.svg'
 
 const navLinkClass = ({ isActive }) =>
   cn(
@@ -21,8 +22,11 @@ export function DashboardLayout() {
     <div className="min-h-dvh bg-neutral-50 dark:bg-neutral-950">
       <header className="sticky top-0 z-10 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-0/90 dark:bg-neutral-900/90 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-4">
-          <span className="font-display text-base font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
-            Palisade
+          <span className="flex items-center gap-2">
+            <img src={argusMark} alt="" className="h-6 w-auto" />
+            <span className="font-display text-base font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
+              Palisade
+            </span>
           </span>
           <nav className="flex items-center gap-1">
             <NavLink to="/dashboard/guests" className={navLinkClass}>
