@@ -36,7 +36,15 @@ const resendCodeLimiter = rateLimit({
   message: { error: 'Please wait before requesting another code.' },
 });
 
-router.post('/register', validateRegister, async (req, res, next) => {
+const registerLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many registration attempts. Please wait before trying again.' },
+});
+
+router.post('/register', registerLimiter, validateRegister, async (req, res, next) => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
