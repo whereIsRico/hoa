@@ -265,8 +265,8 @@ export function AdminResidentsPage() {
                   deletingId === person.id ? null : (
                     <>
                       {person.role === 'admin' && <Badge tone="approved">Admin</Badge>}
-                      <Badge tone={person.is_approved ? 'success' : 'neutral'}>
-                        {person.is_approved ? 'On Palisade' : 'Pending'}
+                      <Badge tone={person.is_approved ? 'success' : person.email_verified ? 'neutral' : 'warning'}>
+                        {person.is_approved ? 'On Palisade' : person.email_verified ? 'Pending' : 'Unverified'}
                       </Badge>
                       <Button
                         size="sm"

@@ -196,8 +196,8 @@ export function StaffDirectoryPage() {
               </div>
             </div>
             {person.kind === 'resident' ? (
-              <Badge tone={person.is_approved ? 'success' : 'neutral'}>
-                {person.is_approved ? 'On Palisade' : 'Pending'}
+              <Badge tone={person.is_approved ? 'success' : person.email_verified ? 'neutral' : 'warning'}>
+                {person.is_approved ? 'On Palisade' : person.email_verified ? 'Pending' : 'Unverified'}
               </Badge>
             ) : (
               <Badge tone="neutral">Not on Palisade</Badge>

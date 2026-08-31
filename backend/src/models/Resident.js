@@ -94,12 +94,8 @@ async function findByIdInCommunity(id, communityId, client = pool) {
   return rows[0] || null;
 }
 
-// Unverified registrations are deliberately invisible here: /register is
-// unauthenticated and only IP-rate-limited, so without this filter the
-// admin's pending-approval queue would fill with junk indistinguishable
-// from real residents waiting on approval.
 async function listForCommunity(communityId, { approved } = {}) {
-  const conditions = ['community_id = $1', 'email_verified = true'];
+  const conditions = ['community_id = $1'];
   const values = [communityId];
 
   if (approved !== undefined) {
