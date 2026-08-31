@@ -33,6 +33,11 @@ services:
       - key: DB_PASSWORD
         type: SECRET
         value: ${passage-db.PASSWORD}
+      - key: RESEND_API_KEY
+        type: SECRET
+        value: REPLACE_ME_IN_DASHBOARD
+      - key: EMAIL_FROM
+        value: notifications@palisade.whereisrico.dev
 
 static_sites:
   - name: frontend
