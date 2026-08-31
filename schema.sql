@@ -23,11 +23,24 @@ CREATE TABLE residents (
   phone VARCHAR(20),
   unit_number VARCHAR(50),
   is_approved BOOLEAN DEFAULT false,
+  email_verified BOOLEAN NOT NULL DEFAULT false,
   guest_limit_per_month INTEGER DEFAULT 10,
   role VARCHAR(50) DEFAULT 'resident',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(community_id, email)
+);
+
+-- Email verification codes for new resident registrations. A separate
+-- table (not columns on residents) so "resend" is just a new row — no
+-- in-place overwrite juggling, matching the manual_contacts precedent
+-- of purpose-built tables over overloading an existing one.
+CREATE TABLE email_verifications (
+  id SERIAL PRIMARY KEY,
+  resident_id INTEGER NOT NULL REFERENCES residents(id),
+  code_hash VARCHAR(255) NOT NULL,
+  expires_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Gate Staff
@@ -147,3 +160,4 @@ CREATE INDEX idx_audit_community ON audit_logs(community_id);
 CREATE INDEX idx_subscriptions_community ON subscriptions(community_id);
 CREATE INDEX idx_subscriptions_status ON subscriptions(status);
 CREATE INDEX idx_manual_contacts_community ON manual_contacts(community_id);
+CREATE INDEX idx_email_verifications_resident ON email_verifications(resident_id);
