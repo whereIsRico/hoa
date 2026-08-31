@@ -163,6 +163,33 @@ router.post('/verify-email', verifyEmailLimiter, validateVerifyEmail, async (req
   }
 });
 
+router.post('/resend-code', resendCodeLimiter, validateResendCode, async (req, res, next) => {
+  try {
+    const { community_id, email } = req.body;
+
+    const resident = await Resident.findByEmailAndCommunity(email, community_id);
+    if (!resident) {
+      return res.status(404).json({ error: 'Resident not found' });
+    }
+    if (resident.email_verified) {
+      return res.status(409).json({ error: 'Email is already verified' });
+    }
+
+    const code = generateCode();
+    await EmailVerification.create(resident.id, code);
+
+    try {
+      await sendVerificationCode(resident.email, code);
+    } catch (sendErr) {
+      return res.status(502).json({ error: 'Could not send verification email. Please try again.' });
+    }
+
+    res.status(200).json({ email: resident.email, community_id: resident.community_id });
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.post('/login', validateLogin, async (req, res, next) => {
   try {
     const { community_id, email, password } = req.body;
