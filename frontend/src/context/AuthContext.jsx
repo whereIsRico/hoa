@@ -42,10 +42,21 @@ export function AuthProvider({ children }) {
   }
 
   const register = async (payload) => {
-    const { token: newToken, resident } = await authApi.register(payload)
+    // No session is set here — registration no longer logs you in. The
+    // caller (RegisterPage) uses the returned { email, community_id } to
+    // route into the verification screen.
+    return authApi.register(payload)
+  }
+
+  const verifyEmail = async (payload) => {
+    const { token: newToken, resident } = await authApi.verifyEmail(payload)
     localStorage.setItem(STORAGE_KEY, newToken)
     setToken(newToken)
     setResident(resident)
+  }
+
+  const resendCode = async (payload) => {
+    return authApi.resendCode(payload)
   }
 
   const logout = () => {
@@ -57,7 +68,9 @@ export function AuthProvider({ children }) {
   const refreshResident = () => loadResident(token)
 
   return (
-    <AuthContext.Provider value={{ token, resident, loading, login, register, logout, refreshResident, setResident }}>
+    <AuthContext.Provider
+      value={{ token, resident, loading, login, register, verifyEmail, resendCode, logout, refreshResident, setResident }}
+    >
       {children}
     </AuthContext.Provider>
   )

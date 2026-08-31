@@ -11,6 +11,7 @@ import { PlatformProtectedRoute } from '@/components/PlatformProtectedRoute'
 import { PlatformPublicOnlyRoute } from '@/components/PlatformPublicOnlyRoute'
 import { LoginPage } from '@/pages/LoginPage'
 import { RegisterPage } from '@/pages/RegisterPage'
+import { VerifyEmailPage } from '@/pages/VerifyEmailPage'
 import { DashboardLayout } from '@/pages/DashboardLayout'
 import { GuestsPage } from '@/pages/GuestsPage'
 import { NewGuestPage } from '@/pages/NewGuestPage'
@@ -42,6 +43,7 @@ export default function App() {
             <Route element={<PublicOnlyRoute />}>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/verify-email" element={<VerifyEmailPage />} />
             </Route>
 
             <Route element={<ProtectedRoute />}>

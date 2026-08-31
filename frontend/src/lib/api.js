@@ -8,6 +8,7 @@ export class ApiError extends Error {
     super(body?.error || 'Request failed')
     this.status = status
     this.details = body?.details || null
+    this.code = body?.code || null
   }
 }
 
@@ -35,6 +36,8 @@ export const communitiesApi = {
 export const authApi = {
   register: (payload) => request('/api/auth/register', { method: 'POST', body: payload }),
   login: (payload) => request('/api/auth/login', { method: 'POST', body: payload }),
+  verifyEmail: (payload) => request('/api/auth/verify-email', { method: 'POST', body: payload }),
+  resendCode: (payload) => request('/api/auth/resend-code', { method: 'POST', body: payload }),
 }
 
 export const staffAuthApi = {

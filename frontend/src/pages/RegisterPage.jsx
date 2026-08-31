@@ -28,8 +28,8 @@ export function RegisterPage() {
     try {
       const payload = { ...form, community_id: Number(form.community_id) }
       if (!payload.phone) delete payload.phone
-      await register(payload)
-      navigate('/dashboard/guests')
+      const { email, community_id } = await register(payload)
+      navigate('/verify-email', { state: { email, community_id } })
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message)
