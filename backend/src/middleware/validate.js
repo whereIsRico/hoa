@@ -46,6 +46,43 @@ function validateLogin(req, res, next) {
   next();
 }
 
+function validateVerifyEmail(req, res, next) {
+  const { community_id, email, code } = req.body;
+  const errors = [];
+
+  if (community_id === undefined || !Number.isInteger(Number(community_id))) {
+    errors.push('community_id is required and must be an integer');
+  }
+  if (!email || !EMAIL_RE.test(email)) {
+    errors.push('A valid email is required');
+  }
+  if (!code || typeof code !== 'string' || !/^\d{6}$/.test(code)) {
+    errors.push('code is required and must be 6 digits');
+  }
+
+  if (errors.length) {
+    return res.status(400).json({ error: 'Validation failed', details: errors });
+  }
+  next();
+}
+
+function validateResendCode(req, res, next) {
+  const { community_id, email } = req.body;
+  const errors = [];
+
+  if (community_id === undefined || !Number.isInteger(Number(community_id))) {
+    errors.push('community_id is required and must be an integer');
+  }
+  if (!email || !EMAIL_RE.test(email)) {
+    errors.push('A valid email is required');
+  }
+
+  if (errors.length) {
+    return res.status(400).json({ error: 'Validation failed', details: errors });
+  }
+  next();
+}
+
 const PROFILE_EDITABLE_FIELDS = ['first_name', 'last_name', 'phone'];
 
 function validateProfileUpdate(req, res, next) {
@@ -395,6 +432,8 @@ function validatePolicyUpdate(req, res, next) {
 module.exports = {
   validateRegister,
   validateLogin,
+  validateVerifyEmail,
+  validateResendCode,
   validateProfileUpdate,
   PROFILE_EDITABLE_FIELDS,
   validateGuestCreate,
