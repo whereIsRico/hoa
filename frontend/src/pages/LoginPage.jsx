@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { Banner } from '@/components/ui/Banner'
 
 export function LoginPage() {
-  const { login } = useAuth()
+  const { login, resendCode } = useAuth()
   const navigate = useNavigate()
   const [form, setForm] = useState({ community_id: '', email: '', password: '' })
   const [error, setError] = useState(null)
@@ -25,6 +25,14 @@ export function LoginPage() {
       await login({ ...form, community_id: Number(form.community_id) })
       navigate('/dashboard/guests')
     } catch (err) {
+      if (err instanceof ApiError && err.code === 'EMAIL_UNVERIFIED') {
+        const community_id = Number(form.community_id)
+        // Fire-and-forget: an unverified-login attempt means no fresh code
+        // is likely sitting in their inbox already.
+        resendCode({ community_id, email: form.email }).catch(() => {})
+        navigate('/verify-email', { state: { email: form.email, community_id } })
+        return
+      }
       setError(err instanceof ApiError ? err.message : 'Something went wrong. Please try again.')
     } finally {
       setSubmitting(false)
