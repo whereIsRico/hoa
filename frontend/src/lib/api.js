@@ -73,6 +73,7 @@ export const adminApi = {
     request(`/api/admin/residents/${id}/approval`, { method: 'PUT', token, body: { approved } }),
   updateResidentRole: (token, id, role) =>
     request(`/api/admin/residents/${id}/role`, { method: 'PUT', token, body: { role } }),
+  rejectResident: (token, id) => request(`/api/admin/residents/${id}`, { method: 'DELETE', token }),
   listStaff: (token) => request('/api/admin/staff', { token }),
   createStaff: (token, payload) => request('/api/admin/staff', { method: 'POST', token, body: payload }),
   getPolicy: (token) => request('/api/admin/policy', { token }),

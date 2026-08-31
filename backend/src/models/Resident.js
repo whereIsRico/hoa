@@ -134,6 +134,10 @@ async function updateApproval(id, approved, client) {
   return rows[0];
 }
 
+async function remove(id, client = pool) {
+  await client.query('DELETE FROM residents WHERE id = $1', [id]);
+}
+
 module.exports = {
   emailExistsInCommunity,
   create,
@@ -142,6 +146,7 @@ module.exports = {
   findByIdInCommunity,
   listForCommunity,
   countAdminsInCommunity,
+  remove,
   updateRole,
   updateApproval,
   updateProfile,

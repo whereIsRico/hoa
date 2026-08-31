@@ -114,6 +114,19 @@ export function AdminResidentsPage() {
     }
   }
 
+  const confirmRejectResident = async (resident) => {
+    setActingId(resident.id)
+    try {
+      await adminApi.rejectResident(token, resident.id)
+      setDeletingId(null)
+      await load()
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Could not reject resident')
+    } finally {
+      setActingId(null)
+    }
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -249,28 +262,40 @@ export function AdminResidentsPage() {
               </button>
               <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
                 {person.kind === 'resident' ? (
-                  <>
-                    {person.role === 'admin' && <Badge tone="approved">Admin</Badge>}
-                    <Badge tone={person.is_approved ? 'success' : 'neutral'}>
-                      {person.is_approved ? 'On Palisade' : 'Pending'}
-                    </Badge>
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      loading={actingId === person.id}
-                      onClick={() => toggleApproval(person)}
-                    >
-                      {person.is_approved ? 'Revoke' : 'Approve'}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      disabled={actingId === person.id}
-                      onClick={() => toggleRole(person)}
-                    >
-                      {person.role === 'admin' ? 'Demote' : 'Make admin'}
-                    </Button>
-                  </>
+                  deletingId === person.id ? null : (
+                    <>
+                      {person.role === 'admin' && <Badge tone="approved">Admin</Badge>}
+                      <Badge tone={person.is_approved ? 'success' : 'neutral'}>
+                        {person.is_approved ? 'On Palisade' : 'Pending'}
+                      </Badge>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        loading={actingId === person.id}
+                        onClick={() => toggleApproval(person)}
+                      >
+                        {person.is_approved ? 'Revoke' : 'Approve'}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        disabled={actingId === person.id}
+                        onClick={() => toggleRole(person)}
+                      >
+                        {person.role === 'admin' ? 'Demote' : 'Make admin'}
+                      </Button>
+                      {!person.is_approved && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          disabled={actingId === person.id}
+                          onClick={() => setDeletingId(person.id)}
+                        >
+                          Reject
+                        </Button>
+                      )}
+                    </>
+                  )
                 ) : (
                   <>
                     <Badge tone="neutral">Not on Palisade</Badge>
@@ -294,19 +319,21 @@ export function AdminResidentsPage() {
               </div>
             </div>
 
-            {person.kind === 'contact' && deletingId === person.id && (
+            {deletingId === person.id && (
               <div className="flex items-center justify-end gap-2 rounded-[var(--radius-field)] bg-neutral-50 dark:bg-neutral-800/50 p-2.5">
                 <p className="mr-auto text-sm text-neutral-600 dark:text-neutral-400">
-                  Delete {person.first_name} {person.last_name}?
+                  {person.kind === 'contact'
+                    ? `Delete ${person.first_name} ${person.last_name}?`
+                    : `Reject ${person.first_name} ${person.last_name}'s registration?`}
                 </p>
                 <Button
                   size="sm"
                   variant="danger"
                   loading={actingId === person.id}
-                  onClick={() => confirmDeleteContact(person)}
+                  onClick={() => (person.kind === 'contact' ? confirmDeleteContact(person) : confirmRejectResident(person))}
                   className="shrink-0 whitespace-nowrap"
                 >
-                  Confirm delete
+                  {person.kind === 'contact' ? 'Confirm delete' : 'Confirm reject'}
                 </Button>
                 <Button
                   size="sm"

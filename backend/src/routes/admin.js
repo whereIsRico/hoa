@@ -231,6 +231,56 @@ router.put('/residents/:id/approval', authenticate, requireAdmin, validateApprov
   }
 });
 
+// Rejects a pending resident registration by deleting it outright. Scoped to
+// pending only — an approved resident can already have guests, and
+// guests.resident_id is a NOT NULL FK with no cascade, so this would hit a
+// DB constraint anyway. A pending resident can never have guests (guest
+// creation is blocked server-side until approval), so this stays a clean
+// delete. Offboarding an already-approved resident (with guest history to
+// account for) is a different, bigger feature — not this one.
+router.delete('/residents/:id', authenticate, requireAdmin, async (req, res, next) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    return res.status(400).json({ error: 'Invalid resident id' });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const resident = await Resident.findByIdInCommunity(id, req.user.community_id, client);
+    if (!resident) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Resident not found' });
+    }
+
+    if (resident.is_approved) {
+      await client.query('ROLLBACK');
+      return res.status(409).json({ error: 'Cannot reject a resident who is already approved' });
+    }
+
+    await Resident.remove(id, client);
+
+    await AuditLog.log(client, {
+      community_id: req.user.community_id,
+      action: 'resident.rejected',
+      actor_id: req.user.id,
+      actor_type: 'admin',
+      resource_id: id,
+      resource_type: 'resident',
+      details: { email: resident.email },
+    });
+
+    await client.query('COMMIT');
+    res.status(204).end();
+  } catch (err) {
+    await client.query('ROLLBACK');
+    next(err);
+  } finally {
+    client.release();
+  }
+});
+
 // Manual contacts: people the HOA has a phone number for who never created
 // a Palisade account. Admin-maintained roster, same tenant-scoping and
 // audit-log discipline as every other admin-write route in this file.
