@@ -94,6 +94,75 @@ router.post('/register', registerLimiter, validateRegister, async (req, res, nex
   }
 });
 
+router.post('/verify-email', verifyEmailLimiter, validateVerifyEmail, async (req, res, next) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const { community_id, email, code } = req.body;
+
+    const resident = await Resident.findByEmailAndCommunity(email, community_id);
+    if (!resident) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Resident not found' });
+    }
+
+    if (resident.email_verified) {
+      await client.query('ROLLBACK');
+      return res.status(409).json({ error: 'Email is already verified' });
+    }
+
+    const verification = await EmailVerification.findLatestForResident(resident.id, client);
+    if (!verification || new Date(verification.expires_at) < new Date()) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'Code expired or not found. Request a new one.' });
+    }
+
+    const matches = await EmailVerification.matchesCode(verification, code);
+    if (!matches) {
+      await client.query('ROLLBACK');
+      return res.status(401).json({ error: 'Incorrect code' });
+    }
+
+    const verifiedResident = await Resident.markEmailVerified(resident.id, client);
+    await EmailVerification.remove(verification.id, client);
+
+    await AuditLog.log(client, {
+      community_id,
+      action: 'resident.email_verified',
+      actor_id: resident.id,
+      actor_type: 'resident',
+      resource_id: resident.id,
+      resource_type: 'resident',
+      details: { email: resident.email },
+    });
+
+    await client.query('COMMIT');
+
+    // Best-effort from here — the resident already proved they own the
+    // email, that's the part that must not roll back. A failed admin
+    // notification is logged, not surfaced to the resident.
+    try {
+      const adminEmails = await Resident.listAdminEmailsForCommunity(community_id);
+      const community = await Community.findById(community_id);
+      await sendAdminNotification(adminEmails, {
+        residentName: `${verifiedResident.first_name} ${verifiedResident.last_name}`,
+        communityName: community?.name || 'their HOA',
+      });
+    } catch (notifyErr) {
+      console.error('Admin notification failed:', notifyErr.message);
+    }
+
+    const token = signToken(verifiedResident);
+    res.json({ resident: verifiedResident, token });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    next(err);
+  } finally {
+    client.release();
+  }
+});
+
 router.post('/login', validateLogin, async (req, res, next) => {
   try {
     const { community_id, email, password } = req.body;
