@@ -24,7 +24,11 @@ export function VerifyEmailPage() {
   const [submitting, setSubmitting] = useState(false)
   const [resending, setResending] = useState(false)
   const [resendMessage, setResendMessage] = useState(null)
-  const [cooldown, setCooldown] = useState(0)
+  // Seeded, not 0: a code was already sent seconds ago on both entry paths
+  // (register's send, or LoginPage's auto-resend), so the 1-per-60s resend
+  // limit is already spent — starting enabled guarantees a 429 on the
+  // user's first click.
+  const [cooldown, setCooldown] = useState(RESEND_COOLDOWN_SECONDS)
 
   useEffect(() => {
     if (!email || !community_id) {

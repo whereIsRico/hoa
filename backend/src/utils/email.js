@@ -13,15 +13,25 @@ async function sendVerificationCode(to, code) {
   if (error) throw new Error(error.message || 'Failed to send verification email');
 }
 
+// One send per admin, not one send with every admin in the To: header —
+// a single bad address would otherwise fail the notification for everyone,
+// and every admin would see every other admin's email address.
 async function sendAdminNotification(adminEmails, { residentName, communityName }) {
   if (adminEmails.length === 0) return;
-  const { error } = await resend.emails.send({
-    from: FROM,
-    to: adminEmails,
-    subject: `New resident awaiting approval — ${communityName}`,
-    text: `${residentName} registered as a resident of ${communityName} and is waiting for your approval. Review it at https://palisade.whereisrico.dev/dashboard/admin/residents`,
-  });
-  if (error) throw new Error(error.message || 'Failed to send admin notification email');
+  const results = await Promise.allSettled(
+    adminEmails.map((to) =>
+      resend.emails.send({
+        from: FROM,
+        to,
+        subject: `New resident awaiting approval — ${communityName}`,
+        text: `${residentName} registered as a resident of ${communityName} and is waiting for your approval. Review it at https://palisade.whereisrico.dev/dashboard/admin/residents`,
+      })
+    )
+  );
+  const failed = results.filter((r) => r.status === 'rejected' || r.value?.error);
+  if (failed.length > 0) {
+    throw new Error(`Failed to notify ${failed.length}/${adminEmails.length} admin(s)`);
+  }
 }
 
 module.exports = { sendVerificationCode, sendAdminNotification };

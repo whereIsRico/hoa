@@ -1466,7 +1466,12 @@ async function main() {
   await pool.query(`ALTER TABLE residents ADD COLUMN IF NOT EXISTS email_verified BOOLEAN NOT NULL DEFAULT false;`);
   // Backfill existing residents to true - this feature is about *new*
   // signups, not retroactively demanding unproven residents re-verify.
-  await pool.query(`UPDATE residents SET email_verified = true WHERE email_verified = false;`);
+  await pool.query(`
+    -- ONE-TIME ONLY: this backfills residents that predate this feature.
+    -- Do NOT re-run this after the initial deploy - it would silently mark
+    -- every currently-pending, genuinely-unverified registrant as verified.
+    UPDATE residents SET email_verified = true WHERE email_verified = false;
+  `);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS email_verifications (
       id SERIAL PRIMARY KEY,

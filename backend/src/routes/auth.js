@@ -22,7 +22,7 @@ function signToken(resident) {
 
 const verifyEmailLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  limit: 10,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many attempts. Please wait before trying again.' },
@@ -30,7 +30,7 @@ const verifyEmailLimiter = rateLimit({
 
 const resendCodeLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 1,
+  limit: 1,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Please wait before requesting another code.' },
@@ -38,7 +38,7 @@ const resendCodeLimiter = rateLimit({
 
 const registerLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  limit: 5,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many registration attempts. Please wait before trying again.' },

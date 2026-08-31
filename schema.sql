@@ -37,7 +37,7 @@ CREATE TABLE residents (
 -- of purpose-built tables over overloading an existing one.
 CREATE TABLE email_verifications (
   id SERIAL PRIMARY KEY,
-  resident_id INTEGER NOT NULL REFERENCES residents(id),
+  resident_id INTEGER NOT NULL REFERENCES residents(id) ON DELETE CASCADE,
   code_hash VARCHAR(255) NOT NULL,
   expires_at TIMESTAMP NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

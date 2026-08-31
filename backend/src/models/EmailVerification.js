@@ -21,7 +21,7 @@ async function findLatestForResident(residentId, client = pool) {
   const { rows } = await client.query(
     `SELECT id, resident_id, code_hash, expires_at, created_at
      FROM email_verifications WHERE resident_id = $1
-     ORDER BY created_at DESC LIMIT 1`,
+     ORDER BY id DESC LIMIT 1`,
     [residentId]
   );
   return rows[0] || null;
