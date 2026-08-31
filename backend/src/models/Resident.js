@@ -4,7 +4,7 @@ const { PROFILE_EDITABLE_FIELDS } = require('../middleware/validate');
 
 const PUBLIC_COLUMNS = `
   id, community_id, email, first_name, last_name, phone, unit_number,
-  is_approved, guest_limit_per_month, role, created_at, updated_at
+  is_approved, email_verified, guest_limit_per_month, role, created_at, updated_at
 `;
 
 async function emailExistsInCommunity(email, communityId) {
@@ -134,6 +134,22 @@ async function updateApproval(id, approved, client) {
   return rows[0];
 }
 
+async function markEmailVerified(id, client = pool) {
+  const { rows } = await client.query(
+    `UPDATE residents SET email_verified = true, updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING ${PUBLIC_COLUMNS}`,
+    [id]
+  );
+  return rows[0];
+}
+
+async function listAdminEmailsForCommunity(communityId, client = pool) {
+  const { rows } = await client.query(
+    "SELECT email FROM residents WHERE community_id = $1 AND role = 'admin'",
+    [communityId]
+  );
+  return rows.map((r) => r.email);
+}
+
 async function remove(id, client = pool) {
   await client.query('DELETE FROM residents WHERE id = $1', [id]);
 }
@@ -149,6 +165,8 @@ module.exports = {
   remove,
   updateRole,
   updateApproval,
+  markEmailVerified,
+  listAdminEmailsForCommunity,
   updateProfile,
   verifyPassword,
 };
