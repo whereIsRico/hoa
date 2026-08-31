@@ -14,6 +14,14 @@ const platformRoutes = require('./routes/platform');
 
 const app = express();
 
+// DigitalOcean App Platform's ingress is a single reverse-proxy hop in
+// front of this service. Without this, Express (and by extension
+// express-rate-limit, which keys its limiters by X-Forwarded-For) doesn't
+// trust that header at all, logging a ValidationError on every request in
+// production and potentially mis-keying the rate limiters added for
+// /register, /verify-email, and /resend-code.
+app.set('trust proxy', 1);
+
 // Middleware
 app.use(cors());
 app.use(express.json());
