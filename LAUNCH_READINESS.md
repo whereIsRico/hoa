@@ -65,6 +65,38 @@ production-hardening and account-recovery, not core logic.
     name (`passage-db`) — cosmetic, already deliberately deferred (see
     `RENAME_MIGRATION_PLAN.md`).
 
+## No native mobile app (App Store / Google Play)
+
+Not a launch blocker — the app is already a fully responsive web app
+(mobile pass done 2026-08-30), so residents and gate staff can use it from
+a phone browser today. But it's worth tracking as a real roadmap item,
+not an afterthought:
+
+15. **Gate staff are the strongest case for a real app.** They're
+    standing at a physical gate on a phone/tablet all shift — a home-screen
+    icon, no browser chrome, and (eventually) push notifications for new
+    invited guests would be a meaningfully better experience than a
+    bookmarked browser tab. Residents are a weaker case (occasional use).
+16. **Two real paths, not one:** (a) a thin native wrapper around the
+    existing React app (Capacitor or similar) — days, not months, reuses
+    everything already built, gets a real app-store listing and icon; or
+    (b) a from-scratch React Native/native rewrite — real months of work,
+    only worth it if push notifications or offline gate check-in become
+    must-haves. Start with (a) if this is prioritized at all.
+17. **Store mechanics, not just code:** Apple requires a paid developer
+    account ($99/year) and an App Review pass (rejections for a bare
+    wrapped-webview app are common unless it clearly adds native value —
+    push notifications usually satisfies this); Google Play is a one-time
+    $25 fee and a lighter review, but both need real app icons, screenshots,
+    a privacy policy URL (see item 5 — this becomes a hard requirement
+    the moment either store listing exists, not just a nice-to-have), and
+    a support contact.
+18. **Sequencing:** doesn't belong before the Must-fix items above — an
+    app-store listing for a product with no password reset and no backups
+    just gets more people locked out or exposed to data loss faster. Worth
+    revisiting once there's at least one real paying HOA validating the
+    core product.
+
 ## What's actually working well
 
 The guest lifecycle, multi-actor auth (resident/admin/gate-staff/platform-

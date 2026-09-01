@@ -24,7 +24,7 @@ async function sendAdminNotification(adminEmails, { residentName, communityName 
         from: FROM,
         to,
         subject: `New resident awaiting approval — ${communityName}`,
-        text: `${residentName} registered as a resident of ${communityName} and is waiting for your approval. Review it at https://palisade.whereisrico.dev/dashboard/admin/residents`,
+        text: `${residentName} registered as a resident of ${communityName} and is waiting for your approval. Review it at https://palisade.argusbahamas.com/dashboard/admin/residents`,
       })
     )
   );

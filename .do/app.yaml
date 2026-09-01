@@ -37,7 +37,7 @@ services:
         type: SECRET
         value: REPLACE_ME_IN_DASHBOARD
       - key: EMAIL_FROM
-        value: notifications@palisade.whereisrico.dev
+        value: notifications@palisade.argusbahamas.com
 
 static_sites:
   - name: frontend
@@ -64,3 +64,5 @@ databases:
 domains:
   - domain: palisade.whereisrico.dev
     type: PRIMARY
+  - domain: palisade.argusbahamas.com
+    type: ALIAS
