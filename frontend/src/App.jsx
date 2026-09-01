@@ -11,6 +11,8 @@ import { PlatformProtectedRoute } from '@/components/PlatformProtectedRoute'
 import { PlatformPublicOnlyRoute } from '@/components/PlatformPublicOnlyRoute'
 import { LoginPage } from '@/pages/LoginPage'
 import { RegisterPage } from '@/pages/RegisterPage'
+import { TermsPage } from '@/pages/TermsPage'
+import { PrivacyPage } from '@/pages/PrivacyPage'
 import { VerifyEmailPage } from '@/pages/VerifyEmailPage'
 import { DashboardLayout } from '@/pages/DashboardLayout'
 import { GuestsPage } from '@/pages/GuestsPage'
@@ -92,6 +94,9 @@ export default function App() {
                 <Route path="system-health" element={<SystemHealthPage />} />
               </Route>
             </Route>
+
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
 
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="*" element={<Navigate to="/" replace />} />

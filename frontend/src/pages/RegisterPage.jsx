@@ -112,6 +112,18 @@ export function RegisterPage() {
           )}
         </FormField>
 
+        <p className="text-xs text-neutral-500 dark:text-neutral-400">
+          By creating an account, you agree to Palisade's{' '}
+          <Link to="/terms" target="_blank" className="text-accent-600 underline hover:no-underline">
+            Terms of Service
+          </Link>{' '}
+          and{' '}
+          <Link to="/privacy" target="_blank" className="text-accent-600 underline hover:no-underline">
+            Privacy Policy
+          </Link>
+          .
+        </p>
+
         <Button type="submit" loading={submitting} className="mt-2">
           Create account
         </Button>
