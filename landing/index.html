@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Argus Systems — community access technology, built in The Bahamas</title>
+<meta name="description" content="Argus Systems builds access technology for Bahamian gated communities. Makers of Palisade, the gate and guest management platform for HOAs in Nassau.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,500..800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --marine:#072230;
+    --marine-deep:#041721;
+    --marine-lift:#0C2E3E;
+    --sodium:#F5A93F;
+    --argus:#E08A1E;
+    --cleared:#3FB99A;
+    --bone:#F0EDE6;
+    --bone-mid:rgba(240,237,230,.68);
+    --bone-low:rgba(240,237,230,.42);
+    --hair:rgba(240,237,230,.14);
+    --hair-faint:rgba(240,237,230,.07);
+    --display:"Archivo",system-ui,sans-serif;
+    --body:"Instrument Sans",system-ui,sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;background:var(--marine);color:var(--bone);
+    font-family:var(--body);font-size:17px;line-height:1.62;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{
+    font-family:var(--display);
+    font-variation-settings:"wdth" 112,"wght" 700;
+    margin:0;line-height:1.02;letter-spacing:-.028em;
+  }
+  p{margin:0;}
+  a{color:inherit;}
+  :focus-visible{outline:2.5px solid var(--sodium);outline-offset:3px;border-radius:2px;}
+
+  .wrap{max-width:1200px;margin:0 auto;padding:0 34px;}
+
+  .btn{
+    display:inline-block;font-family:var(--body);font-size:15.5px;font-weight:600;
+    padding:14px 26px;border-radius:2px;text-decoration:none;cursor:pointer;border:none;
+    background:var(--sodium);color:#20160A;transition:background .16s;
+  }
+  .btn:hover{background:#FFBB55;}
+  .btn-line{background:transparent;color:var(--bone);border:1.5px solid var(--hair);padding:12.5px 24px;}
+  .btn-line:hover{background:rgba(240,237,230,.06);border-color:rgba(240,237,230,.3);}
+
+  /* ── masthead ───────────────────────────── */
+  .masthead{position:sticky;top:0;z-index:60;background:rgba(7,34,48,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--hair-faint);}
+  .masthead .wrap{display:flex;align-items:center;justify-content:space-between;height:78px;gap:26px;}
+  .mark{
+    display:inline-flex;align-items:flex-start;gap:6px;
+    text-decoration:none;color:var(--bone);
+    font-size:30px;                 /* everything below scales from this */
+  }
+  .mark-a{height:36px;width:auto;display:block;color:currentColor;flex:none;}
+  .mark-type{display:flex;flex-direction:column;margin-top:7px;}
+  .mark-word{
+    font-family:var(--display);
+    font-variation-settings:"wdth" 100,"wght" 800;
+    font-size:1em;line-height:.72;letter-spacing:-.005em;
+  }
+  .mark-sub{
+    font-family:var(--display);
+    font-variation-settings:"wdth" 100,"wght" 500;
+    font-size:8px;letter-spacing:.42em;text-transform:uppercase;
+    color:var(--bone-low);margin-top:7px;
+  }
+  .nav{display:flex;gap:34px;font-size:15px;}
+  .nav a{text-decoration:none;color:var(--bone-mid);transition:color .15s;}
+  .nav a:hover{color:var(--bone);}
+  .nav a.on{color:var(--sodium);}
+
+  .menu-btn{
+    display:none;background:none;border:none;cursor:pointer;
+    padding:10px 4px;flex-direction:column;gap:6px;
+  }
+  .menu-btn span{display:block;width:24px;height:1.5px;background:var(--bone);transition:transform .2s,opacity .2s;}
+  .menu-btn[aria-expanded="true"] span:first-child{transform:translateY(3.75px) rotate(45deg);}
+  .menu-btn[aria-expanded="true"] span:last-child{transform:translateY(-3.75px) rotate(-45deg);}
+  .menu-panel{display:none;border-top:1px solid var(--hair-faint);padding:6px 22px 18px;}
+  .menu-panel a{
+    display:block;padding:15px 0;text-decoration:none;
+    color:var(--bone-mid);font-size:17px;border-bottom:1px solid var(--hair-faint);
+  }
+  .menu-panel a:last-child{border-bottom:none;color:var(--sodium);}
+
+  /* ── hero ───────────────────────────────── */
+  .hero{padding:126px 0 96px;position:relative;overflow:hidden;}
+  .hero::before{
+    content:"";position:absolute;top:-220px;right:-160px;width:820px;height:660px;
+    background:radial-gradient(closest-side,rgba(245,169,63,.16),transparent 72%);pointer-events:none;
+  }
+  .hero .wrap{position:relative;max-width:1000px;}
+  .place{font-size:15px;color:var(--sodium);font-weight:500;margin-bottom:24px;}
+  .hero h1{font-size:clamp(3.2rem,7.4vw,6rem);max-width:13ch;}
+  .hero-sub{margin-top:30px;font-size:20px;color:var(--bone-mid);max-width:56ch;}
+  .hero-actions{margin-top:42px;display:flex;gap:14px;flex-wrap:wrap;}
+
+  /* ── standing band ──────────────────────── */
+  .band{background:var(--marine-deep);border-top:1px solid var(--hair-faint);border-bottom:1px solid var(--hair-faint);}
+  .band .wrap{display:grid;grid-template-columns:repeat(3,1fr);}
+  .band-item{padding:34px 34px 34px 34px;border-left:1px solid var(--hair-faint);}
+  .band-item:first-child{border-left:none;padding-left:0;}
+  .band-item h3{font-size:17px;font-variation-settings:"wdth" 108,"wght" 600;}
+  .band-item p{margin-top:7px;font-size:15px;color:var(--bone-mid);}
+
+  /* ── services ───────────────────────────── */
+  .services{padding:104px 0;}
+  .services h2{font-size:clamp(2.1rem,4vw,3.2rem);max-width:18ch;}
+  .services-lead{margin-top:22px;color:var(--bone-mid);max-width:58ch;}
+  .svc-grid{margin-top:60px;display:grid;grid-template-columns:repeat(2,1fr);gap:0;}
+  .svc{padding:34px 44px 34px 0;border-top:1px solid var(--hair);}
+  .svc:nth-child(even){padding-left:44px;border-left:1px solid var(--hair);padding-right:0;}
+  .svc h3{font-size:21px;font-variation-settings:"wdth" 108,"wght" 700;}
+  .svc p{margin-top:12px;color:var(--bone-mid);font-size:15.5px;max-width:44ch;}
+  .svc .scope{margin-top:16px;font-size:14px;color:var(--sodium);}
+
+  /* ── flagship ───────────────────────────── */
+  .flagship{padding:104px 0;background:var(--marine-deep);position:relative;overflow:hidden;}
+  .flagship::before{
+    content:"";position:absolute;top:-140px;left:-180px;width:760px;height:620px;
+    background:radial-gradient(closest-side,rgba(245,169,63,.12),transparent 72%);pointer-events:none;
+  }
+  .flagship .wrap{position:relative;display:grid;grid-template-columns:.92fr 1.08fr;gap:74px;align-items:center;}
+  .flag-eyebrow{font-size:15px;color:var(--sodium);font-weight:500;margin-bottom:20px;}
+  .flagship h2{font-size:clamp(2.1rem,4vw,3.2rem);}
+  .flagship .lede{margin-top:24px;color:var(--bone-mid);max-width:46ch;}
+  .flag-points{margin:32px 0 0;padding:0;list-style:none;}
+  .flag-points li{padding:16px 0;border-top:1px solid var(--hair);}
+  .flag-points strong{display:block;font-family:var(--display);font-variation-settings:"wdth" 108,"wght" 600;font-size:16.5px;font-weight:400;letter-spacing:-.01em;}
+  .flag-points span{display:block;margin-top:5px;font-size:15px;color:var(--bone-mid);}
+  .flag-actions{margin-top:34px;display:flex;gap:14px;flex-wrap:wrap;}
+
+  /* ── terminal (signature) ───────────────── */
+  .terminal{
+    background:var(--marine);border:1px solid rgba(245,169,63,.22);border-radius:6px;overflow:hidden;
+    box-shadow:0 40px 90px -40px rgba(0,0,0,.85),0 0 130px -55px rgba(245,169,63,.45);
+  }
+  .term-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 24px;border-bottom:1px solid var(--hair);}
+  .term-title{font-family:var(--display);font-variation-settings:"wdth" 108,"wght" 600;font-size:15.5px;letter-spacing:-.01em;}
+  .term-meta{font-size:13px;color:var(--bone-low);}
+  .term-rows{padding:8px 0 12px;min-height:330px;}
+  .r{display:grid;grid-template-columns:58px 1fr auto;gap:16px;align-items:center;padding:12px 24px;opacity:0;}
+  .r.in{animation:slot .48s cubic-bezier(.2,.7,.3,1) forwards;}
+  @keyframes slot{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+  .r-time{font-size:13.5px;color:var(--bone-low);font-variant-numeric:tabular-nums;}
+  .r-name{font-size:15.5px;}
+  .r-sub{display:block;font-size:13px;color:var(--bone-low);margin-top:1px;}
+  .r-tag{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--bone-mid);white-space:nowrap;}
+  .pip{width:7px;height:7px;border-radius:50%;flex:none;}
+  .pip-ok{background:var(--cleared);}
+  .pip-wait{background:var(--sodium);box-shadow:0 0 10px rgba(245,169,63,.8);}
+  .pip-out{background:rgba(240,237,230,.26);}
+  .term-foot{padding:14px 24px;border-top:1px solid var(--hair);font-size:13px;color:var(--bone-low);}
+
+  /* ── leadership ─────────────────────────── */
+  .team{padding:104px 0;}
+  .team h2{font-size:clamp(2.1rem,4vw,3.2rem);max-width:18ch;}
+  .team-lead{margin-top:22px;color:var(--bone-mid);max-width:54ch;}
+  .people{margin-top:60px;display:grid;grid-template-columns:1fr 1fr;}
+  .person{padding:0 48px;border-left:1px solid var(--hair);}
+  .person:first-child{padding-left:0;border-left:none;}
+  .face{
+    width:76px;height:76px;border-radius:50%;margin-bottom:26px;
+    background:var(--marine-lift);border:1px solid var(--hair);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--display);font-variation-settings:"wdth" 108,"wght" 700;font-size:22px;color:var(--sodium);
+  }
+  .person h3{font-size:25px;font-variation-settings:"wdth" 108,"wght" 700;}
+  .person .title{margin-top:9px;font-size:15px;color:var(--argus);}
+  .person p{margin-top:20px;color:var(--bone-mid);font-size:15.5px;max-width:44ch;}
+
+  /* ── contact ────────────────────────────── */
+  .contact{padding:104px 0;background:var(--marine-deep);position:relative;overflow:hidden;}
+  .contact::before{
+    content:"";position:absolute;bottom:-280px;left:-160px;width:740px;height:600px;
+    background:radial-gradient(closest-side,rgba(245,169,63,.13),transparent 72%);pointer-events:none;
+  }
+  .contact .wrap{position:relative;display:grid;grid-template-columns:1.1fr .9fr;gap:70px;align-items:center;}
+  .contact h2{font-size:clamp(2.3rem,4.4vw,3.4rem);max-width:15ch;}
+  .contact p{margin-top:24px;color:var(--bone-mid);max-width:46ch;}
+  .contact-actions{margin-top:36px;display:flex;gap:14px;flex-wrap:wrap;}
+  .reach dt{font-size:13.5px;color:var(--bone-low);margin-top:24px;}
+  .reach dt:first-child{margin-top:0;}
+  .reach dd{margin:5px 0 0;font-size:16px;}
+  .reach a{color:var(--bone);text-decoration:none;border-bottom:1px solid var(--hair);}
+  .reach a:hover{border-bottom-color:var(--sodium);}
+
+  footer{padding:44px 0;border-top:1px solid var(--hair-faint);}
+  footer .wrap{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;font-size:14px;color:var(--bone-low);}
+  footer a{text-decoration:none;color:var(--bone-mid);}
+  footer a:hover{color:var(--bone);}
+  .foot-links{display:flex;gap:22px;}
+
+  /* ── responsive ─────────────────────────── */
+  @media (max-width:960px){
+    .flagship .wrap,.contact .wrap{grid-template-columns:1fr;gap:48px;}
+    .band .wrap,.svc-grid,.people{grid-template-columns:1fr;}
+    .band-item,.person{padding:26px 0;border-left:none;border-top:1px solid var(--hair-faint);}
+    .band-item:first-child,.person:first-child{padding-top:0;border-top:none;}
+    .svc,.svc:nth-child(even){padding:28px 0;border-left:none;}
+    .nav{display:none;}
+    .nav-cta{display:none;}
+    .menu-btn{display:flex;}
+    .menu-panel{display:block;}
+    .masthead .wrap{height:70px;}
+    .mark{font-size:26px;}
+    .mark-a{height:31px;}
+    .hero-actions,.flag-actions,.contact-actions{flex-direction:column;align-items:stretch;gap:12px;}
+    .hero-actions .btn,.flag-actions .btn,.contact-actions .btn{width:100%;text-align:center;padding:17px 24px;}
+    .hero{padding:76px 0 68px;}
+    .services,.flagship,.team,.contact{padding:72px 0;}
+    .wrap{padding:0 22px;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto;}
+    .r{opacity:1;}
+    .r.in{animation:none;}
+    *{transition:none!important;}
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <a class="mark" href="#top" aria-label="Argus Systems">
+      <svg class="mark-a" viewBox="0 0 384.8 506.56" aria-hidden="true">
+        <path fill="currentColor" d="M192.4 204.02 L314.16 506.56 L384.8 478.1 L192.4 0 L0 478.1 L70.64 506.56 Z"/>
+        <circle cx="192.4" cy="368.57" r="42.41" fill="#E08A1E"/>
+      </svg>
+      <span class="mark-type" aria-hidden="true">
+        <span class="mark-word">RGUS</span>
+        <span class="mark-sub">Systems</span>
+      </span>
+    </a>
+    <nav class="nav">
+      <a class="on" href="#palisade">Palisade</a>
+      <a href="#what">What we do</a>
+      <a href="#team">Leadership</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <a class="btn nav-cta" href="#contact">Start a conversation</a>
+    <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="menuPanel" aria-label="Open menu">
+      <span></span><span></span>
+    </button>
+  </div>
+  <div class="menu-panel" id="menuPanel" hidden>
+    <a href="#palisade">Palisade</a>
+    <a href="#what">What we do</a>
+    <a href="#team">Leadership</a>
+    <a href="#contact">Contact</a>
+  </div>
+</header>
+
+<section class="hero" id="top">
+  <div class="wrap">
+    <p class="place">Bahamian-owned. Built in Nassau.</p>
+    <h1>Who comes through the gate.</h1>
+    <p class="hero-sub">Argus Systems builds the software and hardware that control who comes through the gate. We work with gated communities and property managers across New Providence, on site and in person.</p>
+    <div class="hero-actions">
+      <a class="btn" href="#palisade">Meet Palisade</a>
+      <a class="btn btn-line" href="#contact">Start a conversation</a>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <div class="band-item">
+      <h3>Based in Nassau</h3>
+      <p>We scope, install, and support at the gate. Not a login emailed from overseas.</p>
+    </div>
+    <div class="band-item">
+      <h3>Built for this market</h3>
+      <p>Priced and designed for communities of 50 to 500 homes, not enterprise campuses.</p>
+    </div>
+    <div class="band-item">
+      <h3>Onboarding our first communities</h3>
+      <p>Early accounts hold their pricing for the life of the account.</p>
+    </div>
+  </div>
+</section>
+
+<section class="services" id="what">
+  <div class="wrap">
+    <h2>What we do.</h2>
+    <p class="services-lead">We do one thing and we do it properly: everything that happens at the entrance to a community.</p>
+
+    <div class="svc-grid">
+      <div class="svc">
+        <h3>Gate and guest management software</h3>
+        <p>Palisade, our platform for residents, gate staff, and boards. Guest pre-registration, check-in and check-out, and a full record of every entry.</p>
+        <p class="scope">Residents, gate staff, board reporting</p>
+      </div>
+      <div class="svc">
+        <h3>Access control hardware</h3>
+        <p>RFID readers and keyfobs that let residents through without stopping, wired into your existing barrier arm or gate motor and logged in the same system.</p>
+        <p class="scope">Readers, keyfobs, barrier integration</p>
+      </div>
+      <div class="svc">
+        <h3>Site assessment</h3>
+        <p>We walk your gate during a working shift, map how entries actually happen today, and tell you what would change. No obligation to buy anything after.</p>
+        <p class="scope">Walkthrough, findings, written recommendation</p>
+      </div>
+      <div class="svc">
+        <h3>Setup and shift training</h3>
+        <p>We configure the system for your community, load your residents, and train every gate shift in person until they're comfortable running it alone.</p>
+        <p class="scope">Configuration, data load, on-site training</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="flagship" id="palisade">
+  <div class="wrap">
+    <div>
+      <p class="flag-eyebrow">Our flagship product</p>
+      <h2>Meet Palisade.</h2>
+      <p class="lede">The gate and guest management platform built for Bahamian HOAs. Residents clear their guests ahead of time, gate staff check them in from a tablet, and the board gets a record that can't be rewritten.</p>
+
+      <ul class="flag-points">
+        <li>
+          <strong>One record, three views</strong>
+          <span>Residents, gate staff, and the board each see what they need, all writing to the same log.</span>
+        </li>
+        <li>
+          <strong>An audit trail that holds up</strong>
+          <span>Every entry is timestamped by the system, not written by hand after the fact.</span>
+        </li>
+        <li>
+          <strong>Priced per community</strong>
+          <span>From $199 a month. Every resident, every gate, every device included.</span>
+        </li>
+      </ul>
+
+      <div class="flag-actions">
+        <a class="btn" href="https://palisade.argusbahamas.com">Explore Palisade</a>
+        <a class="btn btn-line" href="#contact">Book a walkthrough</a>
+      </div>
+    </div>
+
+    <div class="terminal" role="img" aria-label="The Palisade gate view, showing arrivals and departures logged at a community gate on a Tuesday evening.">
+      <div class="term-head">
+        <span class="term-title">West gate</span>
+        <span class="term-meta">Tuesday, 7:41 pm</span>
+      </div>
+      <div class="term-rows" id="rows"></div>
+      <div class="term-foot">Timestamped by the system, not by hand.</div>
+    </div>
+  </div>
+</section>
+
+<section class="team" id="team">
+  <div class="wrap">
+    <h2>Leadership.</h2>
+    <p class="team-lead">Argus Systems is a Bahamian company. When you call about your gate, you're calling Nassau, and you're talking to one of us.</p>
+
+    <div class="people">
+      <div class="person">
+        <div class="face" aria-hidden="true">JW</div>
+        <h3>Jeremiah Williams</h3>
+        <p class="title">Founder and Chief Executive Officer</p>
+        <p>Jeremiah leads the company and the work that happens off the screen: HOA boards, property managers, and the site visits that turn a gate into a working install.</p>
+      </div>
+      <div class="person">
+        <div class="face" aria-hidden="true">TR</div>
+        <h3>Tarico Roberts</h3>
+        <p class="title">Co-Founder and Chief Technical Officer</p>
+        <p>Rico owns the technology: the Palisade platform, the security model behind the audit record, and the hardware integration at the gate. He works in IT infrastructure in Nassau.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="contact" id="contact">
+  <div class="wrap">
+    <div>
+      <h2>Let's talk about your gate.</h2>
+      <p>Whether you want a walkthrough of Palisade, a quote for keyfobs and readers, or just an honest assessment of what you have now, we'll come out and look at it.</p>
+      <div class="contact-actions">
+        <a class="btn" href="mailto:hello@argusbahamas.com?subject=Argus%20Systems%20enquiry">Start a conversation</a>
+        <a class="btn btn-line" href="tel:+12420000000">Call us</a>
+      </div>
+    </div>
+    <dl class="reach">
+      <dt>Email</dt>
+      <dd><a href="mailto:hello@argusbahamas.com">hello@argusbahamas.com</a></dd>
+      <dt>Phone</dt>
+      <dd><a href="tel:+12420000000">+1 (242) 000-0000</a></dd>
+      <dt>Location</dt>
+      <dd>Nassau, New Providence, The Bahamas</dd>
+      <dt>Product</dt>
+      <dd><a href="https://palisade.argusbahamas.com">palisade.argusbahamas.com</a></dd>
+    </dl>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>&copy; 2026 Argus Systems. Nassau, The Bahamas.</span>
+    <span class="foot-links">
+      <a href="#palisade">Palisade</a>
+      <a href="#what">What we do</a>
+      <a href="#contact">Contact</a>
+    </span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var btn = document.getElementById("menuBtn");
+  var panel = document.getElementById("menuPanel");
+
+  btn.addEventListener("click", function(){
+    var open = btn.getAttribute("aria-expanded") === "true";
+    btn.setAttribute("aria-expanded", String(!open));
+    btn.setAttribute("aria-label", open ? "Open menu" : "Close menu");
+    panel.hidden = open;
+  });
+
+  panel.addEventListener("click", function(e){
+    if (e.target.tagName === "A"){
+      btn.setAttribute("aria-expanded","false");
+      btn.setAttribute("aria-label","Open menu");
+      panel.hidden = true;
+    }
+  });
+
+  document.addEventListener("keydown", function(e){
+    if (e.key === "Escape" && !panel.hidden){
+      btn.setAttribute("aria-expanded","false");
+      panel.hidden = true;
+      btn.focus();
+    }
+  });
+})();
+</script>
+
+<script>
+(function(){
+  var entries = [
+    {t:"5:12",n:"Bahamas Cable",s:"Service call, unit 24",p:"ok",l:"Cleared"},
+    {t:"5:40",n:"D. Rolle",s:"Guest of unit 61",p:"ok",l:"Cleared"},
+    {t:"6:03",n:"Island Pool Care",s:"Standing approval",p:"ok",l:"Cleared"},
+    {t:"6:27",n:"M. Cartwright",s:"Guest of unit 12",p:"ok",l:"Cleared"},
+    {t:"6:44",n:"Unlisted vehicle",s:"Asking for unit 38",p:"wait",l:"Awaiting resident"},
+    {t:"7:01",n:"J. Smith",s:"Guest of unit 7",p:"ok",l:"Cleared"},
+    {t:"7:38",n:"Bahamas Cable",s:"Departed",p:"out",l:"Checked out"}
+  ];
+
+  var host = document.getElementById("rows");
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  entries.forEach(function(e, i){
+    var row = document.createElement("div");
+    row.className = "r";
+    row.innerHTML =
+      '<span class="r-time">' + e.t + '</span>' +
+      '<span class="r-name">' + e.n + '<span class="r-sub">' + e.s + '</span></span>' +
+      '<span class="r-tag"><span class="pip pip-' + e.p + '"></span>' + e.l + '</span>';
+    host.appendChild(row);
+    if (reduce){ row.style.opacity = 1; return; }
+    setTimeout(function(){ row.classList.add("in"); }, 300 + i * 185);
+  });
+})();
+</script>
+
+</body>
+</html>
