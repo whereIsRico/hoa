@@ -62,7 +62,5 @@ databases:
     production: false
 
 domains:
-  - domain: palisade.whereisrico.dev
-    type: PRIMARY
   - domain: palisade.argusbahamas.com
-    type: ALIAS
+    type: PRIMARY
