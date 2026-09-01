@@ -12,7 +12,7 @@ static_sites:
       - path: /
 
 domains:
-  - domain: argusbahamas.com
-    type: PRIMARY
   - domain: www.argusbahamas.com
+    type: PRIMARY
+  - domain: argusbahamas.com
     type: ALIAS
