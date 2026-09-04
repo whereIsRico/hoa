@@ -17,7 +17,10 @@ const {
 const router = express.Router();
 
 function signToken(resident) {
-  return sign({ id: resident.id, community_id: resident.community_id, role: resident.role, actorType: 'resident' });
+  return sign({
+    id: resident.id, community_id: resident.community_id, role: resident.role,
+    actorType: 'resident', token_version: resident.token_version,
+  });
 }
 
 const verifyEmailLimiter = rateLimit({
@@ -42,6 +45,14 @@ const registerLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many registration attempts. Please wait before trying again.' },
+});
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many login attempts. Please wait before trying again.' },
 });
 
 router.post('/register', registerLimiter, validateRegister, async (req, res, next) => {
@@ -154,7 +165,11 @@ router.post('/verify-email', verifyEmailLimiter, validateVerifyEmail, async (req
     }
 
     const token = signToken(verifiedResident);
-    res.json({ resident: verifiedResident, token });
+    // token_version rides along on verifiedResident (Resident.markEmailVerified
+    // returns it alongside PUBLIC_COLUMNS specifically so signToken has it),
+    // but it's an internal field — strip it before sending the resident back.
+    const { token_version, ...safeVerifiedResident } = verifiedResident;
+    res.json({ resident: safeVerifiedResident, token });
   } catch (err) {
     await client.query('ROLLBACK');
     next(err);
@@ -190,7 +205,7 @@ router.post('/resend-code', resendCodeLimiter, validateResendCode, async (req, r
   }
 });
 
-router.post('/login', validateLogin, async (req, res, next) => {
+router.post('/login', loginLimiter, validateLogin, async (req, res, next) => {
   try {
     const { community_id, email, password } = req.body;
 

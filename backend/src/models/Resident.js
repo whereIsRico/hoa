@@ -134,9 +134,14 @@ async function updateApproval(id, approved, client) {
   return rows[0];
 }
 
+// Returns token_version alongside PUBLIC_COLUMNS (not added to
+// PUBLIC_COLUMNS itself, so other callers of that constant are unaffected)
+// so the caller can build a JWT without a separate lookup or relying on an
+// earlier-fetched resident object staying in sync — this row is the single
+// source of truth for its own token_version at the moment it's read here.
 async function markEmailVerified(id, client = pool) {
   const { rows } = await client.query(
-    `UPDATE residents SET email_verified = true, updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING ${PUBLIC_COLUMNS}`,
+    `UPDATE residents SET email_verified = true, updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING ${PUBLIC_COLUMNS}, token_version`,
     [id]
   );
   return rows[0];
@@ -154,6 +159,26 @@ async function remove(id, client = pool) {
   await client.query('DELETE FROM residents WHERE id = $1', [id]);
 }
 
+// Deliberately not part of PUBLIC_COLUMNS — internal to the auth-revocation
+// check in middleware/auth.js, never sent in an API response.
+async function getTokenVersion(id) {
+  const { rows } = await pool.query('SELECT token_version FROM residents WHERE id = $1', [id]);
+  return rows[0]?.token_version ?? null;
+}
+
+// Invalidates every outstanding JWT for this resident at once. Not yet
+// called from anywhere — no password-change/reset flow exists yet (ARG-6)
+// and no "log out everywhere" action exists in the UI — but the primitive
+// is here and tested so ARG-6's reset endpoint can call it directly.
+async function incrementTokenVersion(id, client = pool) {
+  const { rows } = await client.query(
+    `UPDATE residents SET token_version = token_version + 1, updated_at = CURRENT_TIMESTAMP
+     WHERE id = $1 RETURNING ${PUBLIC_COLUMNS}`,
+    [id]
+  );
+  return rows[0] || null;
+}
+
 module.exports = {
   emailExistsInCommunity,
   create,
@@ -169,4 +194,6 @@ module.exports = {
   listAdminEmailsForCommunity,
   updateProfile,
   verifyPassword,
+  getTokenVersion,
+  incrementTokenVersion,
 };

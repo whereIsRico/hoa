@@ -26,6 +26,12 @@ CREATE TABLE residents (
   email_verified BOOLEAN NOT NULL DEFAULT false,
   guest_limit_per_month INTEGER DEFAULT 10,
   role VARCHAR(50) DEFAULT 'resident',
+  -- Bumped to invalidate every outstanding JWT for this account at once
+  -- (password change, deactivation, "log out everywhere") without a full
+  -- token blacklist table. Checked against the JWT's own embedded
+  -- token_version claim on every authenticated request — see
+  -- backend/src/middleware/auth.js.
+  token_version INTEGER NOT NULL DEFAULT 1,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(community_id, email)
@@ -55,6 +61,8 @@ CREATE TABLE gate_staff (
   is_active BOOLEAN DEFAULT true,
   shift_start TIME,
   shift_end TIME,
+  -- See residents.token_version above — same purpose, per-actor-table.
+  token_version INTEGER NOT NULL DEFAULT 1,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(community_id, email)
@@ -147,6 +155,8 @@ CREATE TABLE platform_admins (
   email VARCHAR(255) NOT NULL UNIQUE,
   password_hash VARCHAR(255) NOT NULL,
   is_active BOOLEAN DEFAULT true,
+  -- See residents.token_version above — same purpose, per-actor-table.
+  token_version INTEGER NOT NULL DEFAULT 1,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

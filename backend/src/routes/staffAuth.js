@@ -1,4 +1,5 @@
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 
 const GateStaff = require('../models/GateStaff');
 const { sign } = require('../utils/jwt');
@@ -6,7 +7,15 @@ const { validateLogin } = require('../middleware/validate');
 
 const router = express.Router();
 
-router.post('/staff-login', validateLogin, async (req, res, next) => {
+const staffLoginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many login attempts. Please wait before trying again.' },
+});
+
+router.post('/staff-login', staffLoginLimiter, validateLogin, async (req, res, next) => {
   try {
     const { community_id, email, password } = req.body;
 
@@ -22,7 +31,7 @@ router.post('/staff-login', validateLogin, async (req, res, next) => {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    const token = sign({ id: staff.id, community_id: staff.community_id, actorType: 'gate_staff' });
+    const token = sign({ id: staff.id, community_id: staff.community_id, actorType: 'gate_staff', token_version: staff.token_version });
     const { password_hash, ...safeStaff } = staff;
 
     res.json({ staff: safeStaff, token });
