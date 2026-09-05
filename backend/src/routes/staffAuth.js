@@ -1,9 +1,13 @@
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 
+const pool = require('../config/db');
 const GateStaff = require('../models/GateStaff');
+const PasswordResetToken = require('../models/PasswordResetToken');
 const { sign } = require('../utils/jwt');
-const { validateLogin } = require('../middleware/validate');
+const { generateToken, hashToken } = require('../utils/passwordResetToken');
+const { sendPasswordResetEmail } = require('../utils/email');
+const { validateLogin, validateForgotPassword } = require('../middleware/validate');
 
 const router = express.Router();
 
@@ -13,6 +17,14 @@ const staffLoginLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many login attempts. Please wait before trying again.' },
+});
+
+const forgotPasswordLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many attempts. Please wait before trying again.' },
 });
 
 router.post('/staff-login', staffLoginLimiter, validateLogin, async (req, res, next) => {
@@ -35,6 +47,29 @@ router.post('/staff-login', staffLoginLimiter, validateLogin, async (req, res, n
     const { password_hash, ...safeStaff } = staff;
 
     res.json({ staff: safeStaff, token });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/staff-forgot-password', forgotPasswordLimiter, validateForgotPassword, async (req, res, next) => {
+  try {
+    const { community_id, email } = req.body;
+
+    const staff = await GateStaff.findByEmailAndCommunity(email, community_id);
+    if (staff && staff.is_active) {
+      await PasswordResetToken.deleteForActor('gate_staff', staff.id);
+      const rawToken = generateToken();
+      await PasswordResetToken.create({
+        actor_type: 'gate_staff',
+        actor_id: staff.id,
+        token_hash: hashToken(rawToken),
+      });
+      const resetUrl = `https://palisade.argusbahamas.com/staff/reset-password?token=${rawToken}`;
+      await sendPasswordResetEmail(staff.email, resetUrl);
+    }
+
+    res.status(200).json({ message: 'If an account exists, a reset link has been sent.' });
   } catch (err) {
     next(err);
   }

@@ -7,11 +7,14 @@ const EmailVerification = require('../models/EmailVerification');
 const Community = require('../models/Community');
 const Policy = require('../models/Policy');
 const AuditLog = require('../models/AuditLog');
+const PasswordResetToken = require('../models/PasswordResetToken');
 const { sign } = require('../utils/jwt');
 const { generateCode } = require('../utils/verificationCode');
-const { sendVerificationCode, sendAdminNotification } = require('../utils/email');
+const { generateToken, hashToken } = require('../utils/passwordResetToken');
+const { sendVerificationCode, sendAdminNotification, sendPasswordResetEmail } = require('../utils/email');
 const {
   validateRegister, validateLogin, validateVerifyEmail, validateResendCode,
+  validateForgotPassword, validateResetPassword,
 } = require('../middleware/validate');
 
 const router = express.Router();
@@ -53,6 +56,14 @@ const loginLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many login attempts. Please wait before trying again.' },
+});
+
+const forgotPasswordLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many attempts. Please wait before trying again.' },
 });
 
 router.post('/register', registerLimiter, validateRegister, async (req, res, next) => {
@@ -229,6 +240,32 @@ router.post('/login', loginLimiter, validateLogin, async (req, res, next) => {
     const { password_hash, ...safeResident } = resident;
 
     res.json({ resident: safeResident, token });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/forgot-password', forgotPasswordLimiter, validateForgotPassword, async (req, res, next) => {
+  try {
+    const { community_id, email } = req.body;
+
+    const resident = await Resident.findByEmailAndCommunity(email, community_id);
+    if (resident) {
+      await PasswordResetToken.deleteForActor('resident', resident.id);
+      const rawToken = generateToken();
+      await PasswordResetToken.create({
+        actor_type: 'resident',
+        actor_id: resident.id,
+        token_hash: hashToken(rawToken),
+      });
+      const resetUrl = `https://palisade.argusbahamas.com/reset-password?token=${rawToken}`;
+      await sendPasswordResetEmail(resident.email, resetUrl);
+    }
+
+    // Always the same response whether or not the account exists —
+    // prevents email enumeration, same reasoning as login's generic
+    // "invalid email or password" for a nonexistent account.
+    res.status(200).json({ message: 'If an account exists, a reset link has been sent.' });
   } catch (err) {
     next(err);
   }
