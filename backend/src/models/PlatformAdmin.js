@@ -18,6 +18,15 @@ async function verifyPassword(plainPassword, passwordHash) {
   return password.compare(plainPassword, passwordHash);
 }
 
+async function updatePassword(id, plainPassword, client = pool) {
+  const password_hash = await password.hash(plainPassword);
+  const { rows } = await client.query(
+    `UPDATE platform_admins SET password_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING ${PUBLIC_COLUMNS}`,
+    [password_hash, id]
+  );
+  return rows[0] || null;
+}
+
 // See Resident.getTokenVersion — same purpose, not part of PUBLIC_COLUMNS.
 async function getTokenVersion(id) {
   const { rows } = await pool.query('SELECT token_version FROM platform_admins WHERE id = $1', [id]);
@@ -34,4 +43,4 @@ async function incrementTokenVersion(id, client = pool) {
   return rows[0] || null;
 }
 
-module.exports = { findByEmail, findById, verifyPassword, getTokenVersion, incrementTokenVersion };
+module.exports = { findByEmail, findById, verifyPassword, updatePassword, getTokenVersion, incrementTokenVersion };

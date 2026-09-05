@@ -134,6 +134,15 @@ async function updateApproval(id, approved, client) {
   return rows[0];
 }
 
+async function updatePassword(id, plainPassword, client = pool) {
+  const password_hash = await password.hash(plainPassword);
+  const { rows } = await client.query(
+    `UPDATE residents SET password_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING ${PUBLIC_COLUMNS}`,
+    [password_hash, id]
+  );
+  return rows[0] || null;
+}
+
 // Returns token_version alongside PUBLIC_COLUMNS (not added to
 // PUBLIC_COLUMNS itself, so other callers of that constant are unaffected)
 // so the caller can build a JWT without a separate lookup or relying on an
@@ -190,6 +199,7 @@ module.exports = {
   remove,
   updateRole,
   updateApproval,
+  updatePassword,
   markEmailVerified,
   listAdminEmailsForCommunity,
   updateProfile,
