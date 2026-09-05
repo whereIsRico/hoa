@@ -39,6 +39,12 @@ function nextIp() {
   return `10.1.0.${ipCounter}`;
 }
 
+// Hoisted so each test can inspect its own client's query/release call
+// history and assert the transaction itself was driven correctly (BEGIN/
+// COMMIT/ROLLBACK, connection released) — not just that the handler
+// returned the right HTTP response.
+let client;
+
 function fakeClient() {
   return {
     query: jest.fn().mockResolvedValue({}),
@@ -50,7 +56,8 @@ beforeEach(() => {
   jest.clearAllMocks();
   AuditLog.log = jest.fn().mockResolvedValue(undefined);
   PasswordResetToken.remove = jest.fn().mockResolvedValue(undefined);
-  pool.connect = jest.fn().mockResolvedValue(fakeClient());
+  client = fakeClient();
+  pool.connect = jest.fn().mockResolvedValue(client);
 });
 
 describe('reset-password: resident', () => {
@@ -70,6 +77,9 @@ describe('reset-password: resident', () => {
     expect(Resident.updatePassword).toHaveBeenCalledWith(42, 'newpassword123', expect.anything());
     expect(Resident.incrementTokenVersion).toHaveBeenCalledWith(42, expect.anything());
     expect(PasswordResetToken.remove).toHaveBeenCalledWith(5, expect.anything());
+    expect(client.query).toHaveBeenCalledWith('BEGIN');
+    expect(client.query).toHaveBeenCalledWith('COMMIT');
+    expect(client.release).toHaveBeenCalled();
   });
 
   test('rejects a token belonging to a different actor type', async () => {
@@ -82,6 +92,8 @@ describe('reset-password: resident', () => {
       .send({ token: 'a'.repeat(64), new_password: 'newpassword123' });
     expect(res.status).toBe(400);
     expect(Resident.updatePassword).not.toHaveBeenCalled();
+    expect(client.query).toHaveBeenCalledWith('ROLLBACK');
+    expect(client.query).not.toHaveBeenCalledWith('COMMIT');
   });
 
   test('rejects an expired or nonexistent token with the same generic error', async () => {
@@ -92,6 +104,8 @@ describe('reset-password: resident', () => {
       .send({ token: 'a'.repeat(64), new_password: 'newpassword123' });
     expect(res.status).toBe(400);
     expect(res.body.error).toBe('Invalid or expired reset link');
+    expect(client.query).toHaveBeenCalledWith('ROLLBACK');
+    expect(client.query).not.toHaveBeenCalledWith('COMMIT');
   });
 
   test('rejects a password shorter than 8 characters', async () => {
@@ -122,6 +136,9 @@ describe('reset-password: gate staff', () => {
     expect(GateStaff.updatePassword).toHaveBeenCalledWith(7, 'newpassword123', expect.anything());
     expect(GateStaff.incrementTokenVersion).toHaveBeenCalledWith(7, expect.anything());
     expect(PasswordResetToken.remove).toHaveBeenCalledWith(6, expect.anything());
+    expect(client.query).toHaveBeenCalledWith('BEGIN');
+    expect(client.query).toHaveBeenCalledWith('COMMIT');
+    expect(client.release).toHaveBeenCalled();
   });
 
   test('rejects a token belonging to a different actor type', async () => {
@@ -134,6 +151,8 @@ describe('reset-password: gate staff', () => {
       .send({ token: 'b'.repeat(64), new_password: 'newpassword123' });
     expect(res.status).toBe(400);
     expect(GateStaff.updatePassword).not.toHaveBeenCalled();
+    expect(client.query).toHaveBeenCalledWith('ROLLBACK');
+    expect(client.query).not.toHaveBeenCalledWith('COMMIT');
   });
 
   test('rejects an expired or nonexistent token with the same generic error', async () => {
@@ -144,6 +163,8 @@ describe('reset-password: gate staff', () => {
       .send({ token: 'b'.repeat(64), new_password: 'newpassword123' });
     expect(res.status).toBe(400);
     expect(res.body.error).toBe('Invalid or expired reset link');
+    expect(client.query).toHaveBeenCalledWith('ROLLBACK');
+    expect(client.query).not.toHaveBeenCalledWith('COMMIT');
   });
 
   test('rejects a password shorter than 8 characters', async () => {
@@ -175,6 +196,9 @@ describe('reset-password: platform admin', () => {
     expect(PlatformAdmin.incrementTokenVersion).toHaveBeenCalledWith(3, expect.anything());
     expect(PasswordResetToken.remove).toHaveBeenCalledWith(8, expect.anything());
     expect(AuditLog.log).not.toHaveBeenCalled();
+    expect(client.query).toHaveBeenCalledWith('BEGIN');
+    expect(client.query).toHaveBeenCalledWith('COMMIT');
+    expect(client.release).toHaveBeenCalled();
   });
 
   test('rejects a token belonging to a different actor type', async () => {
@@ -187,6 +211,8 @@ describe('reset-password: platform admin', () => {
       .send({ token: 'c'.repeat(64), new_password: 'newpassword123' });
     expect(res.status).toBe(400);
     expect(PlatformAdmin.updatePassword).not.toHaveBeenCalled();
+    expect(client.query).toHaveBeenCalledWith('ROLLBACK');
+    expect(client.query).not.toHaveBeenCalledWith('COMMIT');
   });
 
   test('rejects an expired or nonexistent token with the same generic error', async () => {
@@ -197,6 +223,8 @@ describe('reset-password: platform admin', () => {
       .send({ token: 'c'.repeat(64), new_password: 'newpassword123' });
     expect(res.status).toBe(400);
     expect(res.body.error).toBe('Invalid or expired reset link');
+    expect(client.query).toHaveBeenCalledWith('ROLLBACK');
+    expect(client.query).not.toHaveBeenCalledWith('COMMIT');
   });
 
   test('rejects a password shorter than 8 characters', async () => {
