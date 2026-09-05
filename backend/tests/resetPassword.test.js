@@ -24,6 +24,21 @@ const AuditLog = require('../src/models/AuditLog');
 const pool = require('../src/config/db');
 const app = require('../src/app');
 
+// This file makes several requests to the same rate-limited endpoints it's
+// behaviorally testing (5-per-15-min, never reset between tests within a
+// file since Jest gives each file one shared `app`/limiter instance). `trust
+// proxy` is enabled in src/app.js, so express-rate-limit keys off
+// X-Forwarded-For when present — give every request its own fake IP so this
+// file never eats into the shared limiter's headroom, regardless of how many
+// tests get added later. (The dedicated resetPasswordRateLimit.test.js
+// deliberately does NOT do this — it wants every request to share one IP so
+// it can actually exercise the limit.)
+let ipCounter = 0;
+function nextIp() {
+  ipCounter += 1;
+  return `10.1.0.${ipCounter}`;
+}
+
 function fakeClient() {
   return {
     query: jest.fn().mockResolvedValue({}),
@@ -48,6 +63,7 @@ describe('reset-password: resident', () => {
 
     const res = await request(app)
       .post('/api/auth/reset-password')
+      .set('X-Forwarded-For', nextIp())
       .send({ token: 'a'.repeat(64), new_password: 'newpassword123' });
 
     expect(res.status).toBe(200);
@@ -62,6 +78,7 @@ describe('reset-password: resident', () => {
     });
     const res = await request(app)
       .post('/api/auth/reset-password')
+      .set('X-Forwarded-For', nextIp())
       .send({ token: 'a'.repeat(64), new_password: 'newpassword123' });
     expect(res.status).toBe(400);
     expect(Resident.updatePassword).not.toHaveBeenCalled();
@@ -71,6 +88,7 @@ describe('reset-password: resident', () => {
     PasswordResetToken.findValidByHash = jest.fn().mockResolvedValue(null);
     const res = await request(app)
       .post('/api/auth/reset-password')
+      .set('X-Forwarded-For', nextIp())
       .send({ token: 'a'.repeat(64), new_password: 'newpassword123' });
     expect(res.status).toBe(400);
     expect(res.body.error).toBe('Invalid or expired reset link');
@@ -80,6 +98,7 @@ describe('reset-password: resident', () => {
     PasswordResetToken.findValidByHash = jest.fn();
     const res = await request(app)
       .post('/api/auth/reset-password')
+      .set('X-Forwarded-For', nextIp())
       .send({ token: 'a'.repeat(64), new_password: 'short' });
     expect(res.status).toBe(400);
     expect(PasswordResetToken.findValidByHash).not.toHaveBeenCalled();
@@ -96,6 +115,7 @@ describe('reset-password: gate staff', () => {
 
     const res = await request(app)
       .post('/api/auth/staff-reset-password')
+      .set('X-Forwarded-For', nextIp())
       .send({ token: 'b'.repeat(64), new_password: 'newpassword123' });
 
     expect(res.status).toBe(200);
@@ -110,6 +130,7 @@ describe('reset-password: gate staff', () => {
     });
     const res = await request(app)
       .post('/api/auth/staff-reset-password')
+      .set('X-Forwarded-For', nextIp())
       .send({ token: 'b'.repeat(64), new_password: 'newpassword123' });
     expect(res.status).toBe(400);
     expect(GateStaff.updatePassword).not.toHaveBeenCalled();
@@ -119,6 +140,7 @@ describe('reset-password: gate staff', () => {
     PasswordResetToken.findValidByHash = jest.fn().mockResolvedValue(null);
     const res = await request(app)
       .post('/api/auth/staff-reset-password')
+      .set('X-Forwarded-For', nextIp())
       .send({ token: 'b'.repeat(64), new_password: 'newpassword123' });
     expect(res.status).toBe(400);
     expect(res.body.error).toBe('Invalid or expired reset link');
@@ -128,6 +150,7 @@ describe('reset-password: gate staff', () => {
     PasswordResetToken.findValidByHash = jest.fn();
     const res = await request(app)
       .post('/api/auth/staff-reset-password')
+      .set('X-Forwarded-For', nextIp())
       .send({ token: 'b'.repeat(64), new_password: 'short' });
     expect(res.status).toBe(400);
     expect(PasswordResetToken.findValidByHash).not.toHaveBeenCalled();
@@ -144,6 +167,7 @@ describe('reset-password: platform admin', () => {
 
     const res = await request(app)
       .post('/api/auth/platform-reset-password')
+      .set('X-Forwarded-For', nextIp())
       .send({ token: 'c'.repeat(64), new_password: 'newpassword123' });
 
     expect(res.status).toBe(200);
@@ -159,6 +183,7 @@ describe('reset-password: platform admin', () => {
     });
     const res = await request(app)
       .post('/api/auth/platform-reset-password')
+      .set('X-Forwarded-For', nextIp())
       .send({ token: 'c'.repeat(64), new_password: 'newpassword123' });
     expect(res.status).toBe(400);
     expect(PlatformAdmin.updatePassword).not.toHaveBeenCalled();
@@ -168,6 +193,7 @@ describe('reset-password: platform admin', () => {
     PasswordResetToken.findValidByHash = jest.fn().mockResolvedValue(null);
     const res = await request(app)
       .post('/api/auth/platform-reset-password')
+      .set('X-Forwarded-For', nextIp())
       .send({ token: 'c'.repeat(64), new_password: 'newpassword123' });
     expect(res.status).toBe(400);
     expect(res.body.error).toBe('Invalid or expired reset link');
@@ -177,6 +203,7 @@ describe('reset-password: platform admin', () => {
     PasswordResetToken.findValidByHash = jest.fn();
     const res = await request(app)
       .post('/api/auth/platform-reset-password')
+      .set('X-Forwarded-For', nextIp())
       .send({ token: 'c'.repeat(64), new_password: 'short' });
     expect(res.status).toBe(400);
     expect(PasswordResetToken.findValidByHash).not.toHaveBeenCalled();
