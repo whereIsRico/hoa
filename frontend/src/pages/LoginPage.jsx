@@ -57,6 +57,11 @@ export function LoginPage() {
               Sign in here
             </Link>
           </p>
+          <p>
+            <Link to="/forgot-password" className="font-medium text-accent-600 hover:underline">
+              Forgot your password?
+            </Link>
+          </p>
         </div>
       }
     >

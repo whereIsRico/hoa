@@ -38,6 +38,8 @@ export const authApi = {
   login: (payload) => request('/api/auth/login', { method: 'POST', body: payload }),
   verifyEmail: (payload) => request('/api/auth/verify-email', { method: 'POST', body: payload }),
   resendCode: (payload) => request('/api/auth/resend-code', { method: 'POST', body: payload }),
+  forgotPassword: (payload) => request('/api/auth/forgot-password', { method: 'POST', body: payload }),
+  resetPassword: (payload) => request('/api/auth/reset-password', { method: 'POST', body: payload }),
 }
 
 export const staffAuthApi = {

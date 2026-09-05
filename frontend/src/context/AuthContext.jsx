@@ -59,6 +59,14 @@ export function AuthProvider({ children }) {
     return authApi.resendCode(payload)
   }
 
+  const forgotPassword = async (payload) => {
+    return authApi.forgotPassword(payload)
+  }
+
+  const resetPassword = async (payload) => {
+    return authApi.resetPassword(payload)
+  }
+
   const logout = () => {
     localStorage.removeItem(STORAGE_KEY)
     setToken(null)
@@ -69,7 +77,20 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ token, resident, loading, login, register, verifyEmail, resendCode, logout, refreshResident, setResident }}
+      value={{
+        token,
+        resident,
+        loading,
+        login,
+        register,
+        verifyEmail,
+        resendCode,
+        forgotPassword,
+        resetPassword,
+        logout,
+        refreshResident,
+        setResident,
+      }}
     >
       {children}
     </AuthContext.Provider>
