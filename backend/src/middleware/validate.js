@@ -83,6 +83,54 @@ function validateResendCode(req, res, next) {
   next();
 }
 
+function validateForgotPassword(req, res, next) {
+  const { community_id, email } = req.body;
+  const errors = [];
+
+  if (community_id === undefined || !Number.isInteger(Number(community_id))) {
+    errors.push('community_id is required and must be an integer');
+  }
+  if (!email || !EMAIL_RE.test(email)) {
+    errors.push('A valid email is required');
+  }
+
+  if (errors.length) {
+    return res.status(400).json({ error: 'Validation failed', details: errors });
+  }
+  next();
+}
+
+function validatePlatformForgotPassword(req, res, next) {
+  const { email } = req.body;
+  const errors = [];
+
+  if (!email || !EMAIL_RE.test(email)) {
+    errors.push('A valid email is required');
+  }
+
+  if (errors.length) {
+    return res.status(400).json({ error: 'Validation failed', details: errors });
+  }
+  next();
+}
+
+function validateResetPassword(req, res, next) {
+  const { token, new_password } = req.body;
+  const errors = [];
+
+  if (!token || typeof token !== 'string') {
+    errors.push('token is required');
+  }
+  if (!new_password || typeof new_password !== 'string' || new_password.length < 8) {
+    errors.push('new_password is required and must be at least 8 characters');
+  }
+
+  if (errors.length) {
+    return res.status(400).json({ error: 'Validation failed', details: errors });
+  }
+  next();
+}
+
 const PROFILE_EDITABLE_FIELDS = ['first_name', 'last_name', 'phone'];
 
 function validateProfileUpdate(req, res, next) {
@@ -434,6 +482,9 @@ module.exports = {
   validateLogin,
   validateVerifyEmail,
   validateResendCode,
+  validateForgotPassword,
+  validatePlatformForgotPassword,
+  validateResetPassword,
   validateProfileUpdate,
   PROFILE_EDITABLE_FIELDS,
   validateGuestCreate,
