@@ -66,15 +66,18 @@ router.post('/platform-forgot-password', forgotPasswordLimiter, validatePlatform
         token_hash: hashToken(rawToken),
       });
       const resetUrl = `https://palisade.argusbahamas.com/platform/reset-password?token=${rawToken}`;
-      // Best-effort from here — the identical-response guarantee below is
-      // the security-critical part (prevents email enumeration); a failed
-      // send must not produce a different status than the "doesn't exist"
-      // path. Same reasoning as auth.js's /verify-email admin notification.
-      try {
-        await sendPasswordResetEmail(admin.email, resetUrl);
-      } catch (sendErr) {
+      // Fire-and-forget — the identical-response guarantee below is the
+      // security-critical part (prevents email enumeration), and that
+      // includes timing: awaiting this real network round-trip to Resend
+      // would make the account-exists branch measurably slower than the
+      // account-doesn't-exist branch, defeating the point of an identical
+      // response body/status. Safe to not await here because this is a
+      // long-lived Express process (DigitalOcean App Platform), not a
+      // serverless function that could freeze mid-flight after the
+      // response is sent — the promise below will actually complete.
+      sendPasswordResetEmail(admin.email, resetUrl).catch((sendErr) => {
         console.error('Password reset email failed:', sendErr.message);
-      }
+      });
     }
 
     res.status(200).json({ message: 'If an account exists, a reset link has been sent.' });
