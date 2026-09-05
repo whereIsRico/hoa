@@ -146,6 +146,21 @@ CREATE TABLE subscriptions (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Password reset tokens: shared across all three actor types (resident,
+-- gate_staff, platform_admin) via actor_type/actor_id, mirroring how
+-- audit_logs already does polymorphic actor references. token_hash is a
+-- SHA-256 digest (deterministic, indexable) rather than bcrypt — a reset
+-- link only gives the backend the raw token itself, so the row has to be
+-- found BY the token, which bcrypt's salting makes impossible.
+CREATE TABLE password_reset_tokens (
+  id SERIAL PRIMARY KEY,
+  actor_type VARCHAR(50) NOT NULL,
+  actor_id INTEGER NOT NULL,
+  token_hash VARCHAR(255) NOT NULL,
+  expires_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Platform admins (Threshold staff — not scoped to any single community,
 -- unlike HOA admins. Can onboard new communities and their first admin.)
 CREATE TABLE platform_admins (
@@ -171,3 +186,5 @@ CREATE INDEX idx_subscriptions_community ON subscriptions(community_id);
 CREATE INDEX idx_subscriptions_status ON subscriptions(status);
 CREATE INDEX idx_manual_contacts_community ON manual_contacts(community_id);
 CREATE INDEX idx_email_verifications_resident ON email_verifications(resident_id);
+CREATE INDEX idx_password_reset_tokens_hash ON password_reset_tokens(token_hash);
+CREATE INDEX idx_password_reset_tokens_actor ON password_reset_tokens(actor_type, actor_id);
