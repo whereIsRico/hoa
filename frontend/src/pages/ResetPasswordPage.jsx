@@ -43,7 +43,16 @@ export function ResetPasswordPage() {
   return (
     <AuthLayout title="Set a new password" subtitle="Choose a new password for your account">
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
-        {error && <Banner tone="danger">{error}</Banner>}
+        {error && (
+          <>
+            <Banner tone="danger">{error}</Banner>
+            <p className="text-sm">
+              <Link to="/forgot-password" className="font-medium text-accent-600 hover:underline">
+                Request a new link
+              </Link>
+            </p>
+          </>
+        )}
 
         <FormField label="New password" required>
           {(fieldProps) => (
