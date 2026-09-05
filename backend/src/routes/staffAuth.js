@@ -108,6 +108,13 @@ router.post('/staff-reset-password', resetPasswordLimiter, validateResetPassword
     }
 
     const staff = await GateStaff.updatePassword(tokenRow.actor_id, new_password, client);
+    if (!staff) {
+      // The staff account was deleted after the token was issued but before
+      // it was used. Indistinguishable from an invalid token to the caller —
+      // not a different error, and definitely not a 500 or a fake success.
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'Invalid or expired reset link' });
+    }
     await GateStaff.incrementTokenVersion(tokenRow.actor_id, client);
     await PasswordResetToken.remove(tokenRow.id, client);
 

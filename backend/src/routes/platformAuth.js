@@ -106,7 +106,17 @@ router.post('/platform-reset-password', resetPasswordLimiter, validateResetPassw
       return res.status(400).json({ error: 'Invalid or expired reset link' });
     }
 
-    await PlatformAdmin.updatePassword(tokenRow.actor_id, new_password, client);
+    const admin = await PlatformAdmin.updatePassword(tokenRow.actor_id, new_password, client);
+    if (!admin) {
+      // The platform admin account was deleted after the token was issued
+      // but before it was used. Indistinguishable from an invalid token to
+      // the caller — not a different error, and definitely not a 500 or a
+      // fake success (this branch previously never checked the return
+      // value at all, so a null result would silently proceed to delete
+      // the token and respond 200 having changed nothing).
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'Invalid or expired reset link' });
+    }
     await PlatformAdmin.incrementTokenVersion(tokenRow.actor_id, client);
     await PasswordResetToken.remove(tokenRow.id, client);
     // No audit_logs entry — community_id is NOT NULL there and a platform

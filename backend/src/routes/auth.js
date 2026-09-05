@@ -303,6 +303,13 @@ router.post('/reset-password', resetPasswordLimiter, validateResetPassword, asyn
     }
 
     const resident = await Resident.updatePassword(tokenRow.actor_id, new_password, client);
+    if (!resident) {
+      // The resident was deleted after the token was issued but before it
+      // was used. Indistinguishable from an invalid token to the caller —
+      // not a different error, and definitely not a 500 or a fake success.
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'Invalid or expired reset link' });
+    }
     await Resident.incrementTokenVersion(tokenRow.actor_id, client);
     await PasswordResetToken.remove(tokenRow.id, client);
 
