@@ -71,6 +71,32 @@ describe('forgot-password: identical response whether the account exists or not'
   });
 });
 
+describe('forgot-password: email send failure never changes the response', () => {
+  test('resident — sendPasswordResetEmail rejecting still returns the generic 200', async () => {
+    Resident.findByEmailAndCommunity = jest.fn().mockResolvedValue({ id: 1, email: 'a@test.com', token_version: 1 });
+    sendPasswordResetEmail.mockRejectedValue(new Error('Resend outage'));
+    const res = await request(app).post('/api/auth/forgot-password').send({ community_id: 1, email: 'a@test.com' });
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ message: 'If an account exists, a reset link has been sent.' });
+  });
+
+  test('gate staff — sendPasswordResetEmail rejecting still returns the generic 200', async () => {
+    GateStaff.findByEmailAndCommunity = jest.fn().mockResolvedValue({ id: 1, email: 'a@test.com', is_active: true, token_version: 1 });
+    sendPasswordResetEmail.mockRejectedValue(new Error('Resend outage'));
+    const res = await request(app).post('/api/auth/staff-forgot-password').send({ community_id: 1, email: 'a@test.com' });
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ message: 'If an account exists, a reset link has been sent.' });
+  });
+
+  test('platform admin — sendPasswordResetEmail rejecting still returns the generic 200', async () => {
+    PlatformAdmin.findByEmail = jest.fn().mockResolvedValue({ id: 1, email: 'a@test.com', is_active: true, token_version: 1 });
+    sendPasswordResetEmail.mockRejectedValue(new Error('Resend outage'));
+    const res = await request(app).post('/api/auth/platform-forgot-password').send({ email: 'a@test.com' });
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ message: 'If an account exists, a reset link has been sent.' });
+  });
+});
+
 describe('forgot-password: a new request supersedes any prior token', () => {
   test('resident — deletes any existing token for this actor before creating a new one', async () => {
     Resident.findByEmailAndCommunity = jest.fn().mockResolvedValue({ id: 42, email: 'a@test.com', token_version: 1 });

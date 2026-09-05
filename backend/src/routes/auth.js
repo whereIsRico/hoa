@@ -259,7 +259,15 @@ router.post('/forgot-password', forgotPasswordLimiter, validateForgotPassword, a
         token_hash: hashToken(rawToken),
       });
       const resetUrl = `https://palisade.argusbahamas.com/reset-password?token=${rawToken}`;
-      await sendPasswordResetEmail(resident.email, resetUrl);
+      // Best-effort from here — the identical-response guarantee below is
+      // the security-critical part (prevents email enumeration); a failed
+      // send must not produce a different status than the "doesn't exist"
+      // path. Same reasoning as /verify-email's admin notification.
+      try {
+        await sendPasswordResetEmail(resident.email, resetUrl);
+      } catch (sendErr) {
+        console.error('Password reset email failed:', sendErr.message);
+      }
     }
 
     // Always the same response whether or not the account exists —
