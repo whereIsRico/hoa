@@ -279,4 +279,48 @@ router.post('/forgot-password', forgotPasswordLimiter, validateForgotPassword, a
   }
 });
 
+const resetPasswordLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many attempts. Please wait before trying again.' },
+});
+
+router.post('/reset-password', resetPasswordLimiter, validateResetPassword, async (req, res, next) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const { token, new_password } = req.body;
+    const tokenRow = await PasswordResetToken.findValidByHash(hashToken(token), client);
+    if (!tokenRow || tokenRow.actor_type !== 'resident') {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'Invalid or expired reset link' });
+    }
+
+    const resident = await Resident.updatePassword(tokenRow.actor_id, new_password, client);
+    await Resident.incrementTokenVersion(tokenRow.actor_id, client);
+    await PasswordResetToken.remove(tokenRow.id, client);
+
+    await AuditLog.log(client, {
+      community_id: resident.community_id,
+      action: 'resident.password_reset',
+      actor_id: resident.id,
+      actor_type: 'resident',
+      resource_id: resident.id,
+      resource_type: 'resident',
+      details: {},
+    });
+
+    await client.query('COMMIT');
+    res.status(200).json({ message: 'Password reset successfully.' });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    next(err);
+  } finally {
+    client.release();
+  }
+});
+
 module.exports = router;

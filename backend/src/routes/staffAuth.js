@@ -4,10 +4,11 @@ const rateLimit = require('express-rate-limit');
 const pool = require('../config/db');
 const GateStaff = require('../models/GateStaff');
 const PasswordResetToken = require('../models/PasswordResetToken');
+const AuditLog = require('../models/AuditLog');
 const { sign } = require('../utils/jwt');
 const { generateToken, hashToken } = require('../utils/passwordResetToken');
 const { sendPasswordResetEmail } = require('../utils/email');
-const { validateLogin, validateForgotPassword } = require('../middleware/validate');
+const { validateLogin, validateForgotPassword, validateResetPassword } = require('../middleware/validate');
 
 const router = express.Router();
 
@@ -80,6 +81,50 @@ router.post('/staff-forgot-password', forgotPasswordLimiter, validateForgotPassw
     res.status(200).json({ message: 'If an account exists, a reset link has been sent.' });
   } catch (err) {
     next(err);
+  }
+});
+
+const resetPasswordLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many attempts. Please wait before trying again.' },
+});
+
+router.post('/staff-reset-password', resetPasswordLimiter, validateResetPassword, async (req, res, next) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const { token, new_password } = req.body;
+    const tokenRow = await PasswordResetToken.findValidByHash(hashToken(token), client);
+    if (!tokenRow || tokenRow.actor_type !== 'gate_staff') {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'Invalid or expired reset link' });
+    }
+
+    const staff = await GateStaff.updatePassword(tokenRow.actor_id, new_password, client);
+    await GateStaff.incrementTokenVersion(tokenRow.actor_id, client);
+    await PasswordResetToken.remove(tokenRow.id, client);
+
+    await AuditLog.log(client, {
+      community_id: staff.community_id,
+      action: 'staff.password_reset',
+      actor_id: staff.id,
+      actor_type: 'gate_staff',
+      resource_id: staff.id,
+      resource_type: 'gate_staff',
+      details: {},
+    });
+
+    await client.query('COMMIT');
+    res.status(200).json({ message: 'Password reset successfully.' });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    next(err);
+  } finally {
+    client.release();
   }
 });
 
