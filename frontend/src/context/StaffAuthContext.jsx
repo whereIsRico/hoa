@@ -41,6 +41,14 @@ export function StaffAuthProvider({ children }) {
     setStaff(staff)
   }
 
+  const forgotPassword = async (payload) => {
+    return staffAuthApi.forgotPassword(payload)
+  }
+
+  const resetPassword = async (payload) => {
+    return staffAuthApi.resetPassword(payload)
+  }
+
   const logout = () => {
     localStorage.removeItem(STORAGE_KEY)
     setToken(null)
@@ -48,7 +56,7 @@ export function StaffAuthProvider({ children }) {
   }
 
   return (
-    <StaffAuthContext.Provider value={{ token, staff, loading, login, logout }}>
+    <StaffAuthContext.Provider value={{ token, staff, loading, login, forgotPassword, resetPassword, logout }}>
       {children}
     </StaffAuthContext.Provider>
   )

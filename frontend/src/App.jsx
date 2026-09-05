@@ -21,6 +21,8 @@ import { GuestsPage } from '@/pages/GuestsPage'
 import { NewGuestPage } from '@/pages/NewGuestPage'
 import { ProfilePage } from '@/pages/ProfilePage'
 import { StaffLoginPage } from '@/pages/StaffLoginPage'
+import { StaffForgotPasswordPage } from '@/pages/StaffForgotPasswordPage'
+import { StaffResetPasswordPage } from '@/pages/StaffResetPasswordPage'
 import { StaffDashboardLayout } from '@/pages/StaffDashboardLayout'
 import { StaffGuestsPage } from '@/pages/StaffGuestsPage'
 import { StaffDirectoryPage } from '@/pages/StaffDirectoryPage'
@@ -74,6 +76,8 @@ export default function App() {
 
             <Route element={<StaffPublicOnlyRoute />}>
               <Route path="/staff/login" element={<StaffLoginPage />} />
+              <Route path="/staff/forgot-password" element={<StaffForgotPasswordPage />} />
+              <Route path="/staff/reset-password" element={<StaffResetPasswordPage />} />
             </Route>
 
             <Route element={<StaffProtectedRoute />}>

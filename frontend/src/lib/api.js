@@ -44,6 +44,8 @@ export const authApi = {
 
 export const staffAuthApi = {
   login: (payload) => request('/api/auth/staff-login', { method: 'POST', body: payload }),
+  forgotPassword: (payload) => request('/api/auth/staff-forgot-password', { method: 'POST', body: payload }),
+  resetPassword: (payload) => request('/api/auth/staff-reset-password', { method: 'POST', body: payload }),
 }
 
 export const residentsApi = {
