@@ -156,7 +156,7 @@ CREATE TABLE password_reset_tokens (
   id SERIAL PRIMARY KEY,
   actor_type VARCHAR(50) NOT NULL,
   actor_id INTEGER NOT NULL,
-  token_hash VARCHAR(255) NOT NULL,
+  token_hash VARCHAR(255) NOT NULL UNIQUE,
   expires_at TIMESTAMP NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
