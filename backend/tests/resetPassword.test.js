@@ -103,6 +103,35 @@ describe('reset-password: gate staff', () => {
     expect(GateStaff.incrementTokenVersion).toHaveBeenCalledWith(7, expect.anything());
     expect(PasswordResetToken.remove).toHaveBeenCalledWith(6, expect.anything());
   });
+
+  test('rejects a token belonging to a different actor type', async () => {
+    PasswordResetToken.findValidByHash = jest.fn().mockResolvedValue({
+      id: 6, actor_type: 'resident', actor_id: 7, expires_at: new Date(Date.now() + 1000),
+    });
+    const res = await request(app)
+      .post('/api/auth/staff-reset-password')
+      .send({ token: 'b'.repeat(64), new_password: 'newpassword123' });
+    expect(res.status).toBe(400);
+    expect(GateStaff.updatePassword).not.toHaveBeenCalled();
+  });
+
+  test('rejects an expired or nonexistent token with the same generic error', async () => {
+    PasswordResetToken.findValidByHash = jest.fn().mockResolvedValue(null);
+    const res = await request(app)
+      .post('/api/auth/staff-reset-password')
+      .send({ token: 'b'.repeat(64), new_password: 'newpassword123' });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('Invalid or expired reset link');
+  });
+
+  test('rejects a password shorter than 8 characters', async () => {
+    PasswordResetToken.findValidByHash = jest.fn();
+    const res = await request(app)
+      .post('/api/auth/staff-reset-password')
+      .send({ token: 'b'.repeat(64), new_password: 'short' });
+    expect(res.status).toBe(400);
+    expect(PasswordResetToken.findValidByHash).not.toHaveBeenCalled();
+  });
 });
 
 describe('reset-password: platform admin', () => {
@@ -122,5 +151,34 @@ describe('reset-password: platform admin', () => {
     expect(PlatformAdmin.incrementTokenVersion).toHaveBeenCalledWith(3, expect.anything());
     expect(PasswordResetToken.remove).toHaveBeenCalledWith(8, expect.anything());
     expect(AuditLog.log).not.toHaveBeenCalled();
+  });
+
+  test('rejects a token belonging to a different actor type', async () => {
+    PasswordResetToken.findValidByHash = jest.fn().mockResolvedValue({
+      id: 8, actor_type: 'gate_staff', actor_id: 3, expires_at: new Date(Date.now() + 1000),
+    });
+    const res = await request(app)
+      .post('/api/auth/platform-reset-password')
+      .send({ token: 'c'.repeat(64), new_password: 'newpassword123' });
+    expect(res.status).toBe(400);
+    expect(PlatformAdmin.updatePassword).not.toHaveBeenCalled();
+  });
+
+  test('rejects an expired or nonexistent token with the same generic error', async () => {
+    PasswordResetToken.findValidByHash = jest.fn().mockResolvedValue(null);
+    const res = await request(app)
+      .post('/api/auth/platform-reset-password')
+      .send({ token: 'c'.repeat(64), new_password: 'newpassword123' });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('Invalid or expired reset link');
+  });
+
+  test('rejects a password shorter than 8 characters', async () => {
+    PasswordResetToken.findValidByHash = jest.fn();
+    const res = await request(app)
+      .post('/api/auth/platform-reset-password')
+      .send({ token: 'c'.repeat(64), new_password: 'short' });
+    expect(res.status).toBe(400);
+    expect(PasswordResetToken.findValidByHash).not.toHaveBeenCalled();
   });
 });

@@ -72,7 +72,8 @@ async function getTokenVersion(id) {
   return rows[0]?.token_version ?? null;
 }
 
-// See Resident.incrementTokenVersion — not yet called from anywhere.
+// See Resident.incrementTokenVersion. Called from staffAuth.js's
+// /staff-reset-password (ARG-6).
 async function incrementTokenVersion(id, client = pool) {
   const { rows } = await client.query(
     `UPDATE gate_staff SET token_version = token_version + 1, updated_at = CURRENT_TIMESTAMP
