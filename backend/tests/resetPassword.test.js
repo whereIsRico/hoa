@@ -101,6 +101,7 @@ describe('reset-password: gate staff', () => {
     expect(res.status).toBe(200);
     expect(GateStaff.updatePassword).toHaveBeenCalledWith(7, 'newpassword123', expect.anything());
     expect(GateStaff.incrementTokenVersion).toHaveBeenCalledWith(7, expect.anything());
+    expect(PasswordResetToken.remove).toHaveBeenCalledWith(6, expect.anything());
   });
 });
 
@@ -118,6 +119,8 @@ describe('reset-password: platform admin', () => {
 
     expect(res.status).toBe(200);
     expect(PlatformAdmin.updatePassword).toHaveBeenCalledWith(3, 'newpassword123', expect.anything());
+    expect(PlatformAdmin.incrementTokenVersion).toHaveBeenCalledWith(3, expect.anything());
+    expect(PasswordResetToken.remove).toHaveBeenCalledWith(8, expect.anything());
     expect(AuditLog.log).not.toHaveBeenCalled();
   });
 });
