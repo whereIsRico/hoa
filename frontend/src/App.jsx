@@ -33,6 +33,8 @@ import { AdminStaffPage } from '@/pages/admin/AdminStaffPage'
 import { NewStaffPage } from '@/pages/admin/NewStaffPage'
 import { AdminPoliciesPage } from '@/pages/admin/AdminPoliciesPage'
 import { PlatformLoginPage } from '@/pages/platform/PlatformLoginPage'
+import { PlatformForgotPasswordPage } from '@/pages/platform/PlatformForgotPasswordPage'
+import { PlatformResetPasswordPage } from '@/pages/platform/PlatformResetPasswordPage'
 import { PlatformDashboardLayout } from '@/pages/platform/PlatformDashboardLayout'
 import { CommunitiesPage } from '@/pages/platform/CommunitiesPage'
 import { NewCommunityPage } from '@/pages/platform/NewCommunityPage'
@@ -90,6 +92,8 @@ export default function App() {
 
             <Route element={<PlatformPublicOnlyRoute />}>
               <Route path="/platform/login" element={<PlatformLoginPage />} />
+              <Route path="/platform/forgot-password" element={<PlatformForgotPasswordPage />} />
+              <Route path="/platform/reset-password" element={<PlatformResetPasswordPage />} />
             </Route>
 
             <Route element={<PlatformProtectedRoute />}>

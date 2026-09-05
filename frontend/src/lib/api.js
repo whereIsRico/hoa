@@ -94,6 +94,8 @@ export const adminApi = {
 
 export const platformAuthApi = {
   login: (payload) => request('/api/auth/platform-login', { method: 'POST', body: payload }),
+  forgotPassword: (payload) => request('/api/auth/platform-forgot-password', { method: 'POST', body: payload }),
+  resetPassword: (payload) => request('/api/auth/platform-reset-password', { method: 'POST', body: payload }),
 }
 
 export const platformApi = {

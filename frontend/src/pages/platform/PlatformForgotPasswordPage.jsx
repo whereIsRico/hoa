@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { usePlatformAuth } from '@/context/PlatformAuthContext'
 import { ApiError } from '@/lib/api'
 import { AuthLayout } from '@/components/AuthLayout'
@@ -7,22 +7,20 @@ import { FormField, Input } from '@/components/ui/Field'
 import { Button } from '@/components/ui/Button'
 import { Banner } from '@/components/ui/Banner'
 
-export function PlatformLoginPage() {
-  const { login } = usePlatformAuth()
-  const navigate = useNavigate()
-  const [form, setForm] = useState({ email: '', password: '' })
+export function PlatformForgotPasswordPage() {
+  const { forgotPassword } = usePlatformAuth()
+  const [email, setEmail] = useState('')
   const [error, setError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
-
-  const update = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }))
+  const [sent, setSent] = useState(false)
 
   const onSubmit = async (e) => {
     e.preventDefault()
     setError(null)
     setSubmitting(true)
     try {
-      await login(form)
-      navigate('/platform/communities')
+      await forgotPassword({ email })
+      setSent(true)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong. Please try again.')
     } finally {
@@ -30,13 +28,23 @@ export function PlatformLoginPage() {
     }
   }
 
+  if (sent) {
+    return (
+      <AuthLayout title="Check your email" subtitle="If an account exists for that email, we've sent a reset link.">
+        <Link to="/platform/login" className="font-medium text-accent-600 hover:underline">
+          Back to sign in
+        </Link>
+      </AuthLayout>
+    )
+  }
+
   return (
     <AuthLayout
-      title="Platform sign in"
-      subtitle="Argus internal — onboard and manage communities"
+      title="Forgot your password?"
+      subtitle="We'll email you a link to reset it"
       footer={
-        <Link to="/platform/forgot-password" className="font-medium text-accent-600 hover:underline">
-          Forgot your password?
+        <Link to="/platform/login" className="font-medium text-accent-600 hover:underline">
+          Back to sign in
         </Link>
       }
     >
@@ -45,25 +53,12 @@ export function PlatformLoginPage() {
 
         <FormField label="Email" required>
           {(fieldProps) => (
-            <Input {...fieldProps} type="email" autoComplete="email" value={form.email} onChange={update('email')} required />
-          )}
-        </FormField>
-
-        <FormField label="Password" required>
-          {(fieldProps) => (
-            <Input
-              {...fieldProps}
-              type="password"
-              autoComplete="current-password"
-              value={form.password}
-              onChange={update('password')}
-              required
-            />
+            <Input {...fieldProps} type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
           )}
         </FormField>
 
         <Button type="submit" loading={submitting} className="mt-2">
-          Sign in
+          Send reset link
         </Button>
       </form>
     </AuthLayout>

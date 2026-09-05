@@ -47,8 +47,18 @@ export function PlatformAuthProvider({ children }) {
     setPlatformAdmin(null)
   }
 
+  const forgotPassword = async (payload) => {
+    return platformAuthApi.forgotPassword(payload)
+  }
+
+  const resetPassword = async (payload) => {
+    return platformAuthApi.resetPassword(payload)
+  }
+
   return (
-    <PlatformAuthContext.Provider value={{ token, platformAdmin, loading, login, logout }}>
+    <PlatformAuthContext.Provider
+      value={{ token, platformAdmin, loading, login, logout, forgotPassword, resetPassword }}
+    >
       {children}
     </PlatformAuthContext.Provider>
   )
