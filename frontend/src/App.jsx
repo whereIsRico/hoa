@@ -52,8 +52,6 @@ export default function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/verify-email" element={<VerifyEmailPage />} />
-              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-              <Route path="/reset-password" element={<ResetPasswordPage />} />
             </Route>
 
             <Route element={<ProtectedRoute />}>
@@ -78,8 +76,6 @@ export default function App() {
 
             <Route element={<StaffPublicOnlyRoute />}>
               <Route path="/staff/login" element={<StaffLoginPage />} />
-              <Route path="/staff/forgot-password" element={<StaffForgotPasswordPage />} />
-              <Route path="/staff/reset-password" element={<StaffResetPasswordPage />} />
             </Route>
 
             <Route element={<StaffProtectedRoute />}>
@@ -92,8 +88,6 @@ export default function App() {
 
             <Route element={<PlatformPublicOnlyRoute />}>
               <Route path="/platform/login" element={<PlatformLoginPage />} />
-              <Route path="/platform/forgot-password" element={<PlatformForgotPasswordPage />} />
-              <Route path="/platform/reset-password" element={<PlatformResetPasswordPage />} />
             </Route>
 
             <Route element={<PlatformProtectedRoute />}>
@@ -109,6 +103,18 @@ export default function App() {
 
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
+
+            {/* Password-reset pages must render regardless of auth state: a
+                reset email link is valid for 1 hour, and the requester's
+                existing session token (24h JWT) is very likely still valid
+                when they click it — being logged in should never block
+                access to these pages, unlike login/register. */}
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/staff/forgot-password" element={<StaffForgotPasswordPage />} />
+            <Route path="/staff/reset-password" element={<StaffResetPasswordPage />} />
+            <Route path="/platform/forgot-password" element={<PlatformForgotPasswordPage />} />
+            <Route path="/platform/reset-password" element={<PlatformResetPasswordPage />} />
 
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="*" element={<Navigate to="/" replace />} />
