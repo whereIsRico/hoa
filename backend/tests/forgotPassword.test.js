@@ -44,6 +44,10 @@ describe('forgot-password: identical response whether the account exists or not'
       .send({ community_id: 1, email: 'a@test.com' });
     expect(res.status).toBe(200);
     expect(sendPasswordResetEmail).toHaveBeenCalledTimes(1);
+    expect(sendPasswordResetEmail).toHaveBeenCalledWith(
+      'a@test.com',
+      expect.stringMatching(/^https:\/\/palisade\.argusbahamas\.com\/reset-password\?token=[0-9a-f]{64}$/),
+    );
   });
 
   test('resident — account does not exist', async () => {
@@ -64,6 +68,10 @@ describe('forgot-password: identical response whether the account exists or not'
       .send({ community_id: 1, email: 'a@test.com' });
     expect(res.status).toBe(200);
     expect(sendPasswordResetEmail).toHaveBeenCalledTimes(1);
+    expect(sendPasswordResetEmail).toHaveBeenCalledWith(
+      'a@test.com',
+      expect.stringMatching(/^https:\/\/palisade\.argusbahamas\.com\/staff\/reset-password\?token=[0-9a-f]{64}$/),
+    );
   });
 
   test('gate staff — account does not exist', async () => {
@@ -94,6 +102,10 @@ describe('forgot-password: identical response whether the account exists or not'
       .send({ email: 'a@test.com' });
     expect(res.status).toBe(200);
     expect(sendPasswordResetEmail).toHaveBeenCalledTimes(1);
+    expect(sendPasswordResetEmail).toHaveBeenCalledWith(
+      'a@test.com',
+      expect.stringMatching(/^https:\/\/palisade\.argusbahamas\.com\/platform\/reset-password\?token=[0-9a-f]{64}$/),
+    );
   });
 
   test('platform admin — account does not exist', async () => {
