@@ -34,4 +34,14 @@ async function sendAdminNotification(adminEmails, { residentName, communityName 
   }
 }
 
-module.exports = { sendVerificationCode, sendAdminNotification };
+async function sendPasswordResetEmail(to, resetUrl) {
+  const { error } = await resend.emails.send({
+    from: FROM,
+    to,
+    subject: 'Reset your Palisade password',
+    text: `Reset your Palisade password: ${resetUrl}\n\nThis link expires in 1 hour. If you didn't request this, you can safely ignore this email.`,
+  });
+  if (error) throw new Error(error.message || 'Failed to send password reset email');
+}
+
+module.exports = { sendVerificationCode, sendAdminNotification, sendPasswordResetEmail };
